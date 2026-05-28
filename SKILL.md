@@ -94,11 +94,13 @@ These helpers are read-only. They may print private company content locally; sum
 
 This skill is not Mac-mini-only. Keep the package portable for Codex app and Claude Code by using environment credentials (`DOORAY_API_TOKEN` or `DOORAY_API_TOKEN_FILE`) when Keychain is unavailable. For detailed setup differences, read `references/portability.md`.
 
-## AI기술혁신부 주간 보고서 초안
+## AI기술혁신부 주간 회의록 / 보고서 초안
 
-Default department/project for weekly meeting/report drafts is `AI기술혁신부(SE2)`. Other departments can be added later by passing `--project <project-code>` and preserving the same transformation rules.
+Important distinction: AI기술혁신부 weekly **회의록** lives under Dooray **게시글/Home URLs** such as `https://jininfra.dooray.com/home/<homeId>/<postId>`, not Dooray Project 업무(Task). Do **not** use `POST /project/v1/projects/{projectId}/posts` for 회의록 creation; that creates an 업무 item. Use Project post APIs only when the user explicitly asks for 업무/Task.
 
-Use `scripts/weekly-report-draft.mjs` to create a local draft from the previous meeting/report markdown or Dooray post. This helper is read-only toward Dooray; it does not upload or edit anything.
+Default department/project context for weekly meeting/report drafts is `AI기술혁신부(SE2)`. For recurring 회의록 automation, find the previous week's meeting-minutes post from the AI기술혁신부 messenger room link pattern first. The known source pattern is titles like `[회의록][5월 4주차]_회의록_AI기술혁신부 (기술2부)`, posted about one week before the target meeting.
+
+Use `scripts/meeting-links-from-messenger.mjs --channel AI기술혁신부 --limit 100` to find recent `/home/<homeId>/<postId>` meeting-minutes links mentioned in messenger. Use `scripts/weekly-report-draft.mjs` only after the actual previous meeting/report content is available. This helper is read-only toward Dooray; it does not upload or edit anything.
 
 Rules implemented:
 
