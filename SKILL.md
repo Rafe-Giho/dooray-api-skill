@@ -51,6 +51,19 @@ Check config/token without printing secrets. In portable environments, `DOORAY_A
 node ~/.openclaw/skills/dooray/scripts/dooray-api.mjs config
 ```
 
+
+## Read-only helpers
+
+- `scripts/projects-list.mjs` — list Project projects and wiki ids.
+- `scripts/tasks-list.mjs --project <id-or-code>` — list task/post summaries for a project.
+- `scripts/post-get.mjs --project <id-or-code> --post <id-or-number>` — fetch one Project post/task body.
+- `scripts/wikis-list.mjs` — list readable wikis.
+- `scripts/wiki-get.mjs --wiki <id-or-name-or-project-code>` — fetch a wiki page, defaulting to the home page.
+- `scripts/messenger-list.mjs` — list messenger channels/rooms.
+- `scripts/messenger-logs.mjs --channel <id-or-title>` — fetch recent message logs.
+
+These helpers are read-only. They may print private company content locally; summarize carefully in chats.
+
 ## Core workflow
 
 1. If credentials are missing, help the user create `~/.config/dooray/config.json` and store a token with `setup-keychain-token.sh`.

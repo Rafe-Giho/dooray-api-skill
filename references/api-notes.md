@@ -32,3 +32,19 @@ Do not use Management/Admin API unless the user explicitly asks for tenant admin
 - Do not log full API responses unless needed locally.
 - Redact tokens/webhook URLs in all outputs.
 - For write operations, print payload and wait for user confirmation unless the user already gave a specific command.
+
+## Verified read-only endpoints
+
+Verified against 기호님 Dooray Service API token on 2026-05-28:
+
+- `GET /common/v1/members/me` — current member.
+- `GET /project/v1/projects` — Project projects.
+- `GET /project/v1/projects/{projectId}/posts?size=N` — project task/post summaries.
+- `GET /project/v1/projects/{projectId}/posts/{postId}` — project task/post body.
+- `GET /wiki/v1/wikis` — wiki list.
+- `GET /wiki/v1/wikis/{wikiId}/pages?size=N` — wiki pages.
+- `GET /wiki/v1/wikis/{wikiId}/pages/{pageId}` — wiki page body.
+- `GET /messenger/v1/channels` — messenger channels.
+- `GET /messenger/v1/channels/{channelId}/logs?size=N` — messenger logs.
+
+Do not assume write endpoints until separately verified with explicit user approval.
