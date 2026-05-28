@@ -5,7 +5,7 @@ description: Work with Dooray for posts/messages, Project tasks, and Wiki pages 
 
 # Dooray
 
-Use this skill for Dooray 게시글/메신저, 업무(Task), 위키, 프로젝트, and related automations.
+Use this skill for Dooray 게시글, 업무(Task), 위키, 메신저, 프로젝트, and related automations. Default to Dooray Service API for user/content workflows; do not use Management/Admin API unless the user explicitly requests tenant administration.
 
 ## Security rules
 
@@ -61,14 +61,16 @@ node ~/.openclaw/skills/dooray/scripts/dooray-api.mjs config
 
 ## Current domains
 
-- 게시글/메신저: fetch/search/summarize messages or prepare/send announcements after confirmation.
-- 업무/Task: list assigned/in-progress tasks, summarize due dates, prepare status reports.
+- 게시글: fetch/search/summarize posts, extract action items, draft replies.
+- 업무/Task: list assigned/in-progress tasks, summarize due dates, prepare status reports, draft task updates.
 - 위키: fetch/search/summarize wiki pages, draft updates; edit only after confirmation.
+- 메신저: fetch/summarize rooms or messages when supported, draft/send messages after confirmation.
 - 자동화: build n8n workflows around Dooray API, credentials, schedules, and message formatting.
 
 ## References
 
 - For implementation roadmap and endpoint notes, read `references/api-notes.md`.
+- For 게시글/업무/위키/메신저 domain workflows and Service API vs Admin API guidance, read `references/domain-workflows.md`.
 - For Codex app / Claude Code / n8n portability, read `references/portability.md`.
 - For the pending Task due-date automation, read `references/task-status-automation.md`.
 

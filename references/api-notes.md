@@ -1,6 +1,12 @@
 # Dooray API Notes
 
-This skill starts as a broad Dooray integration scaffold. Endpoint details should be verified against the actual Dooray tenant/API docs before building specialized commands.
+This skill starts as a broad Dooray integration scaffold for 게시글, 업무, 위키, and 메신저. Endpoint details should be verified against the actual Dooray tenant/API docs before building specialized commands.
+
+## API family choice
+
+Use Dooray Service API by default. It should cover the planned user/content workflows: posts/messages, project tasks, wiki pages, and user/member lookup.
+
+Do not use Management/Admin API unless the user explicitly asks for tenant administration such as organization/member provisioning, permission administration, audit logs, retention/security policy, or integration/app administration.
 
 ## Intended API areas
 
