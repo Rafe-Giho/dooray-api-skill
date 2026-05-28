@@ -91,3 +91,30 @@ These helpers are read-only. They may print private company content locally; sum
 ## Portability
 
 This skill is not Mac-mini-only. Keep the package portable for Codex app and Claude Code by using environment credentials (`DOORAY_API_TOKEN` or `DOORAY_API_TOKEN_FILE`) when Keychain is unavailable. For detailed setup differences, read `references/portability.md`.
+
+## AI기술혁신부 주간 보고서 초안
+
+Default department/project for weekly meeting/report drafts is `AI기술혁신부(SE2)`. Other departments can be added later by passing `--project <project-code>` and preserving the same transformation rules.
+
+Use `scripts/weekly-report-draft.mjs` to create a local draft from the previous meeting/report markdown or Dooray post. This helper is read-only toward Dooray; it does not upload or edit anything.
+
+Rules implemented:
+
+- Update likely title to the actual target week, e.g. `5월 4주차 주간업무보고서`.
+- Update likely `No.`/meeting date fields to the draft date.
+- Preserve existing table rows and the `구분`, `프로젝트`, `담당자` cells.
+- In markdown tables, blank only `진행사항` and `이슈사항` columns to `•`.
+- Preserve `전파사항`.
+- Preserve `휴가 및 외근`, but remove bullet/table rows with dates before the meeting date when detectable.
+
+Example:
+
+```bash
+node scripts/weekly-report-draft.mjs \
+  --project 'AI기술혁신부(SE2)' \
+  --post <previous-post-id> \
+  --date 2026-05-28 \
+  --out /tmp/weekly-report-draft.md
+```
+
+Do not create/update the Dooray post until the user reviews the draft and explicitly approves upload.

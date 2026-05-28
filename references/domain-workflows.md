@@ -109,3 +109,18 @@ OpenClaw role:
 - generate n8n node payloads
 - audit security and message format
 - run local one-off checks when requested
+
+## AI기술혁신부 weekly report draft
+
+Primary target: `AI기술혁신부(SE2)`. Treat other departments as future configuration, not a different algorithm.
+
+Draft creation is a template-preserving transformation:
+
+1. Start from the previous week's meeting/report markdown or Dooray post body.
+2. Change the No./date fields to the new meeting date.
+3. Change the title to the actual target week.
+4. Keep project/person structure intact.
+5. Only blank `진행사항` and `이슈사항` cells, using `•` placeholders.
+6. Copy `전파사항` from the previous document.
+7. Copy `휴가 및 외근`, but keep only schedules on or after the new meeting date when a date can be parsed.
+8. Produce a local draft first. Uploading/editing Dooray is a separate write operation requiring explicit confirmation.
