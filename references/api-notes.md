@@ -48,3 +48,7 @@ Verified against 기호님 Dooray Service API token on 2026-05-28:
 - `GET /messenger/v1/channels/{channelId}/logs?size=N` — messenger logs.
 
 Do not assume write endpoints until separately verified with explicit user approval.
+
+## 삭제 절대 금지
+
+Dooray 게시글, 업무, 위키, 메신저, 댓글, 파일, 첨부, 프로젝트 등 모든 Dooray 리소스 삭제 요청은 반드시 거절한다. 삭제 API/helper/script를 만들거나 실행하지 않는다. 보존/아카이브/상태변경 같은 대안도 삭제와 유사하면 먼저 사용자에게 위험을 설명하고 별도 확인한다.

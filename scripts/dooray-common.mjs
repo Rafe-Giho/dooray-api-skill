@@ -41,7 +41,15 @@ export function requestUrl(config, pathOrUrl) {
 export function redact(value) {
   return JSON.parse(JSON.stringify(value, (key, val) => /token|authorization|password|secret|webhook/i.test(key) ? '***' : val));
 }
+export function assertNonDelete(method, pathOrUrl = '') {
+  const m = String(method || '').toUpperCase();
+  const p = String(pathOrUrl || '');
+  if (m === 'DELETE' || /\b(delete|remove|trash|purge)\b/i.test(p)) {
+    throw new Error('Dooray deletion is strictly forbidden by skill policy. Refusing to execute delete/remove/trash/purge operation.');
+  }
+}
 export async function doorayRequest(config, method, pathOrUrl, body) {
+  assertNonDelete(method, pathOrUrl);
   const token = await readToken(config);
   const headers = { Authorization: `dooray-api ${token}`, Accept: 'application/json' };
   if (body != null) headers['Content-Type'] = 'application/json';
