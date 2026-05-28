@@ -10,7 +10,7 @@ Use this skill for Dooray 게시글/메신저, 업무(Task), 위키, 프로젝�
 ## Security rules
 
 - Never store Dooray API tokens, webhook URLs, cookies, sessions, or exported private content in Git or memory.
-- Store tokens/webhooks only in macOS Keychain or n8n credentials.
+- Store tokens/webhooks only in macOS Keychain, environment secrets, token files outside Git, or n8n credentials.
 - Do not send Dooray messages, create tasks, edit wiki pages, or mutate external Dooray state without explicit user confirmation.
 - Read/list/search/summarize is safe when credentials are already configured.
 - For group chats, summarize minimally and do not leak private Dooray content unless the user explicitly asked in the same trusted context.
@@ -39,13 +39,13 @@ Recommended shape:
 }
 ```
 
-Register a token locally:
+Register a token locally on Mac/OpenClaw:
 
 ```bash
 ~/.openclaw/skills/dooray/scripts/setup-keychain-token.sh dooray-api-token default
 ```
 
-Check config/token without printing secrets:
+Check config/token without printing secrets. In portable environments, `DOORAY_API_TOKEN` or `DOORAY_API_TOKEN_FILE` is also supported:
 
 ```bash
 node ~/.openclaw/skills/dooray/scripts/dooray-api.mjs config
@@ -69,4 +69,10 @@ node ~/.openclaw/skills/dooray/scripts/dooray-api.mjs config
 ## References
 
 - For implementation roadmap and endpoint notes, read `references/api-notes.md`.
+- For Codex app / Claude Code / n8n portability, read `references/portability.md`.
 - For the pending Task due-date automation, read `references/task-status-automation.md`.
+
+
+## Portability
+
+This skill is not Mac-mini-only. Keep the package portable for Codex app and Claude Code by using environment credentials (`DOORAY_API_TOKEN` or `DOORAY_API_TOKEN_FILE`) when Keychain is unavailable. For detailed setup differences, read `references/portability.md`.

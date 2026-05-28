@@ -32,6 +32,13 @@ function parseArgs(argv) {
   return args;
 }
 async function readToken(config) {
+  const envToken = process.env.DOORAY_API_TOKEN || process.env.DOORAY_TOKEN;
+  if (envToken && envToken.trim()) return envToken.trim();
+  const filePath = process.env.DOORAY_API_TOKEN_FILE || config.tokenFile;
+  if (filePath) {
+    const token = fs.readFileSync(expandHome(filePath), 'utf8').trim();
+    if (token) return token;
+  }
   const service = config.tokenKeychainService || 'dooray-api-token';
   const account = config.tokenKeychainAccount || 'default';
   try {
@@ -40,7 +47,7 @@ async function readToken(config) {
     if (!token) throw new Error('empty token');
     return token;
   } catch (error) {
-    throw new Error(`Dooray token not available in Keychain: service=${service}, account=${account}. Run setup-keychain-token.sh. (${error.message})`);
+    throw new Error(`Dooray token not available. Set DOORAY_API_TOKEN/DOORAY_API_TOKEN_FILE, or on macOS store it in Keychain: service=${service}, account=${account}. Run setup-keychain-token.sh. (${error.message})`);
   }
 }
 function payloadOf(value) {
@@ -69,11 +76,17 @@ const config = readJson(configPath);
 
 if (args.command === 'config') {
   let tokenAvailable = false;
-  try { await readToken(config); tokenAvailable = true; } catch {}
+  let tokenSource = 'none';
+  try {
+    await readToken(config);
+    tokenAvailable = true;
+    tokenSource = process.env.DOORAY_API_TOKEN || process.env.DOORAY_TOKEN ? 'env' : (process.env.DOORAY_API_TOKEN_FILE || config.tokenFile ? 'file' : 'keychain');
+  } catch {}
   console.log(JSON.stringify({
     configPath,
     config: redact(config),
     tokenAvailable,
+    tokenSource,
   }, null, 2));
   process.exit(0);
 }
