@@ -21,21 +21,21 @@ Codex app cannot use the Mac mini Keychain unless it is actually running on that
 
 Recommended shape:
 
-- Put this skill package in a Git repo, or include it under a project path such as `skills/dooray/`.
-- Add a short project `AGENTS.md` that tells Codex to read `skills/dooray/SKILL.md` for Dooray work.
+- Put this skill package in a Git repo, or include it under a project path such as `skills/dooray-api/`.
+- Add a short project `AGENTS.md` that tells Codex to read `skills/dooray-api/SKILL.md` for Dooray work.
 - Provide credentials through the Codex app environment/secret settings, not files committed to Git.
 - Use `DOORAY_API_TOKEN` or `DOORAY_API_TOKEN_FILE`.
 
 Example project `AGENTS.md` snippet:
 
 ```markdown
-For Dooray 게시글/업무/위키 work, read `skills/dooray/SKILL.md` first. Do not write to Dooray without explicit confirmation. Use `DOORAY_API_TOKEN` from the environment for API access.
+For Dooray API-supported 게시글/업무/위키 work, read `skills/dooray-api/SKILL.md` first. Do not write to Dooray without explicit confirmation. Use `DOORAY_API_TOKEN` from the environment for API access.
 ```
 
 Example command inside the Codex app environment:
 
 ```bash
-DOORAY_API_TOKEN="$DOORAY_API_TOKEN" node skills/dooray/scripts/dooray-api.mjs config
+DOORAY_API_TOKEN="$DOORAY_API_TOKEN" node skills/dooray-api/scripts/dooray-api.mjs config
 ```
 
 Constraints:

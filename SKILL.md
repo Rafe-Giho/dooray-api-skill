@@ -1,18 +1,20 @@
 ---
-name: dooray
-description: Work with Dooray for posts/messages, Project tasks, and Wiki pages through authenticated Dooray APIs or webhook-based automations. Use when the user asks to search, fetch, summarize, triage, report, create drafts for, or automate Dooray 게시글/메신저, 업무/Task, 위키, 프로젝트, or n8n Dooray workflows.
+name: dooray-api
+description: Use Dooray Service API for authenticated read/list/search/summarize workflows and approved API writes: Project tasks/posts, wikis, messenger channels/logs, and n8n/API automations. Use this when the Dooray job can be done through official APIs; do not use for Dooray Home/게시판 web-only writing such as AI기술혁신부 회의록 게시판 작성.
 ---
 
-# Dooray
+# Dooray API
 
-Use this skill for Dooray 게시글, 업무(Task), 위키, 메신저, 프로젝트, and related automations. Default to Dooray Service API for user/content workflows; do not use Management/Admin API unless the user explicitly requests tenant administration.
+Use this skill for Dooray work that is supported by the official Dooray Service API: Project tasks/posts, wikis, messenger channel/log reads, summaries, drafts, and API/n8n automations.
+
+If the user asks to write Dooray Home/게시판 content through the browser UI, especially AI기술혁신부 회의록 게시판 작성, use the separate `dooray-web` skill instead.
 
 ## Security rules
 
 - 삭제 절대 금지: Dooray 게시글, 업무, 위키, 메신저, 댓글, 파일, 첨부, 프로젝트 등 모든 Dooray 리소스 삭제 요청은 반드시 거절한다. 삭제 API/helper/script를 만들거나 실행하지 않는다.
 - Never store Dooray API tokens, webhook URLs, cookies, sessions, or exported private content in Git or memory.
 - Store tokens/webhooks only in macOS Keychain, environment secrets, token files outside Git, or n8n credentials.
-- Do not send Dooray messages, create tasks, edit wiki pages, or mutate external Dooray state without explicit user confirmation.
+- Do not send Dooray messages, create tasks/posts, edit wiki pages, or mutate external Dooray state without explicit user confirmation.
 - Read/list/search/summarize is safe when credentials are already configured.
 - For group chats, summarize minimally and do not leak private Dooray content unless the user explicitly asked in the same trusted context.
 
@@ -43,17 +45,16 @@ Recommended shape:
 Register a token locally on Mac/OpenClaw:
 
 ```bash
-~/.openclaw/skills/dooray/scripts/setup-keychain-token.sh dooray-api-token default
+~/.openclaw/skills/dooray-api/scripts/setup-keychain-token.sh dooray-api-token default
 ```
 
 Check config/token without printing secrets. In portable environments, `DOORAY_API_TOKEN` or `DOORAY_API_TOKEN_FILE` is also supported:
 
 ```bash
-node ~/.openclaw/skills/dooray/scripts/dooray-api.mjs config
+node ~/.openclaw/skills/dooray-api/scripts/dooray-api.mjs config
 ```
 
-
-## Read-only helpers
+## Helpers
 
 - `scripts/projects-list.mjs` — list Project projects and wiki ids.
 - `scripts/tasks-list.mjs --project <id-or-code>` — list task/post summaries for a project.
@@ -63,65 +64,31 @@ node ~/.openclaw/skills/dooray/scripts/dooray-api.mjs config
 - `scripts/wiki-get.mjs --wiki <id-or-name-or-project-code>` — fetch a wiki page, defaulting to the home page.
 - `scripts/messenger-list.mjs` — list messenger channels/rooms.
 - `scripts/messenger-logs.mjs --channel <id-or-title>` — fetch recent message logs.
+- `scripts/meeting-links-from-messenger.mjs --channel AI기술혁신부 --limit 100` — read messenger logs and extract recent `/home/<homeId>/<postId>` links for use by `dooray-web`.
+- `scripts/weekly-report-draft.mjs` — draft from a Project post or local markdown. Do not use it to upload Home/게시판 posts.
 
-These helpers are read-only. They may print private company content locally; summarize carefully in chats.
+Helpers may print private company content locally; summarize carefully in chats.
 
 ## Core workflow
 
 1. If credentials are missing, help the user create `~/.config/dooray/config.json` and store a token with `setup-keychain-token.sh`.
-2. For API reads, use `scripts/dooray-api.mjs request <METHOD> <PATH>` or a purpose-built helper added later.
+2. For API reads, use `scripts/dooray-api.mjs request <METHOD> <PATH>` or a purpose-built helper.
 3. For writes, first dry-run or draft the payload; ask the user before sending.
 4. If the exact Dooray endpoint is unclear, inspect official Dooray API docs or use `request GET` against safe discovery endpoints; do not guess destructive endpoints.
-5. For recurring automations, prefer n8n for scheduled collection/sending and keep OpenClaw as setup/audit/helper.
+5. For recurring automations, prefer n8n for scheduled API collection/sending and keep OpenClaw as setup/audit/helper.
 
-## Current domains
+## Boundary with `dooray-web`
 
-- 게시글: fetch/search/summarize posts, extract action items, draft replies.
-- 업무/Task: list assigned/in-progress tasks, summarize due dates, prepare status reports, draft task updates.
-- 위키: fetch/search/summarize wiki pages, draft updates; edit only after confirmation.
-- 메신저: fetch/summarize rooms or messages when supported, draft/send messages after confirmation.
-- 자동화: build n8n workflows around Dooray API, credentials, schedules, and message formatting.
+Dooray Home/게시판 URLs such as `https://jininfra.dooray.com/home/<homeId>/<postId>` are not Project task posts. Do **not** use `POST /project/v1/projects/{projectId}/posts` to create AI기술혁신부 회의록; that creates a Project 업무 item. Use `dooray-web` for browser/UI automation.
+
+API helpers may still be used to discover source links from Dooray Messenger or prepare local drafts, but browser posting belongs to `dooray-web`.
 
 ## References
 
-- For implementation roadmap and endpoint notes, read `references/api-notes.md`.
-- For 게시글/업무/위키/메신저 domain workflows and Service API vs Admin API guidance, read `references/domain-workflows.md`.
+- For endpoint notes, read `references/api-notes.md`.
+- For API domain workflows and Service API vs Admin API guidance, read `references/domain-workflows.md`.
 - For Codex app / Claude Code / n8n portability, read `references/portability.md`.
 - For the pending Task due-date automation, read `references/task-status-automation.md`.
-
-
-## Portability
-
-This skill is not Mac-mini-only. Keep the package portable for Codex app and Claude Code by using environment credentials (`DOORAY_API_TOKEN` or `DOORAY_API_TOKEN_FILE`) when Keychain is unavailable. For detailed setup differences, read `references/portability.md`.
-
-## AI기술혁신부 주간 회의록 / 보고서 초안
-
-Important distinction: AI기술혁신부 weekly **회의록** lives under Dooray **게시글/Home URLs** such as `https://jininfra.dooray.com/home/<homeId>/<postId>`, not Dooray Project 업무(Task). Do **not** use `POST /project/v1/projects/{projectId}/posts` for 회의록 creation; that creates an 업무 item. Use Project post APIs only when the user explicitly asks for 업무/Task.
-
-Default department/project context for weekly meeting/report drafts is `AI기술혁신부(SE2)`. For recurring 회의록 automation, find the previous week's meeting-minutes post from the AI기술혁신부 messenger room link pattern first. The known source pattern is titles like `[회의록][5월 4주차]_회의록_AI기술혁신부 (기술2부)`, posted about one week before the target meeting.
-
-Use `scripts/meeting-links-from-messenger.mjs --channel AI기술혁신부 --limit 100` to find recent `/home/<homeId>/<postId>` meeting-minutes links mentioned in messenger. Use `scripts/weekly-report-draft.mjs` only after the actual previous meeting/report content is available. This helper is read-only toward Dooray; it does not upload or edit anything.
-
-Rules implemented:
-
-- Update likely title to the actual target week, e.g. `5월 4주차 주간업무보고서`.
-- Update likely `No.`/meeting date fields to the draft date.
-- Preserve existing table rows and the `구분`, `프로젝트`, `담당자` cells.
-- In markdown tables, blank only `진행사항` and `이슈사항` columns to `•`.
-- Preserve `전파사항`.
-- Preserve `휴가 및 외근`, but remove bullet/table rows with dates before the meeting date when detectable.
-
-Example:
-
-```bash
-node scripts/weekly-report-draft.mjs \
-  --project 'AI기술혁신부(SE2)' \
-  --post <previous-post-id> \
-  --date 2026-05-28 \
-  --out /tmp/weekly-report-draft.md
-```
-
-Do not create/update the Dooray post until the user reviews the draft and explicitly approves upload.
 
 ## Deletion enforcement
 
