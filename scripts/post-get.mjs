@@ -6,9 +6,14 @@ const {config}=loadConfig(args.config); const projects=unwrap(await doorayReques
 const project=projects.find(p=>p.id===args.project||p.code===args.project); if(!project) throw new Error(`Project not found: ${args.project}`);
 let postId=args.post;
 if(!/^\d+$/.test(postId)) {
-  const list=unwrap(await doorayRequest(config,'GET',`/project/v1/projects/${project.id}/posts?size=100`));
-  const post=list.find(p=>p.taskNumber===args.post||String(p.number)===args.post);
-  if(!post) throw new Error(`Post/task not found in first 100 posts: ${args.post}`);
+  const queries=['size=100', 'size=100&postWorkflowClass=registered,working'];
+  let post=null;
+  for(const query of queries){
+    const list=unwrap(await doorayRequest(config,'GET',`/project/v1/projects/${project.id}/posts?${query}`));
+    post=list.find(p=>p.taskNumber===args.post||String(p.number)===args.post||p.subject===args.post);
+    if(post) break;
+  }
+  if(!post) throw new Error(`Post/task not found in default or open post lists: ${args.post}`);
   postId=post.id;
 }
 const post=unwrap(await doorayRequest(config,'GET',`/project/v1/projects/${project.id}/posts/${postId}`));

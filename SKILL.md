@@ -56,9 +56,11 @@ node ~/.openclaw/skills/dooray-api/scripts/dooray-api.mjs config
 
 ## Helpers
 
+- `scripts/dooray-api-check.mjs` — safe read-only smoke check for token, current member, projects, open Project posts, wiki access, and messenger channels.
 - `scripts/projects-list.mjs` — list Project projects and wiki ids.
-- `scripts/tasks-list.mjs --project <id-or-code>` — list task/post summaries for a project.
-- `scripts/post-get.mjs --project <id-or-code> --post <id-or-number>` — fetch one Project post/task body.
+- `scripts/tasks-list.mjs --project <id-or-code>` — list task/post summaries for a project; `--open` uses verified `postWorkflowClass=registered,working`; `--mine` matches the current member in assignees.
+- `scripts/tasks-report.mjs --project AI기술혁신부(SE2) --mine` — read-only 진행중/마감 업무 report grouped by overdue/today/this-week/no-due-date for API/n8n automation design.
+- `scripts/post-get.mjs --project <id-or-code> --post <id-or-number-or-taskNumber>` — fetch one Project post/task body; task-number resolution checks both default and open post lists.
 - `scripts/post-create.mjs --project <id-or-code> --subject "title" --input draft.md --yes` — create a Project post only after explicit user approval.
 - `scripts/wikis-list.mjs` — list readable wikis.
 - `scripts/wiki-get.mjs --wiki <id-or-name-or-project-code>` — fetch a wiki page, defaulting to the home page.
@@ -72,10 +74,11 @@ Helpers may print private company content locally; summarize carefully in chats.
 ## Core workflow
 
 1. If credentials are missing, help the user create `~/.config/dooray/config.json` and store a token with `setup-keychain-token.sh`.
-2. For API reads, use `scripts/dooray-api.mjs request <METHOD> <PATH>` or a purpose-built helper.
-3. For writes, first dry-run or draft the payload; ask the user before sending.
-4. If the exact Dooray endpoint is unclear, inspect official Dooray API docs or use `request GET` against safe discovery endpoints; do not guess destructive endpoints.
-5. For recurring automations, prefer n8n for scheduled API collection/sending and keep OpenClaw as setup/audit/helper.
+2. Run `scripts/dooray-api-check.mjs --json` first when validating a new environment; it prints counts/metadata without dumping private content.
+3. For API reads, use `scripts/dooray-api.mjs request <METHOD> <PATH>` or a purpose-built helper.
+4. For writes, first dry-run or draft the payload; ask the user before sending.
+5. If the exact Dooray endpoint is unclear, inspect official Dooray API docs or use `request GET` against safe discovery endpoints; do not guess destructive endpoints.
+6. For recurring automations, prefer n8n for scheduled API collection/sending and keep OpenClaw as setup/audit/helper.
 
 ## Boundary with `dooray-web`
 

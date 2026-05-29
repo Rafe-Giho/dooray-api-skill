@@ -18,8 +18,9 @@ n8n 워크플로우로 구현한다. 누트가 직접 메시지를 던지는 방
    - 예: 평일 오전 9시, 또는 매주 월요일 오전 등.
 2. Dooray Task 조회
    - 개인 API 토큰 사용.
+   - 1차 검증 helper: `scripts/tasks-report.mjs --project AI기술혁신부(SE2) --mine --json`
    - 담당자 = 기호님 또는 “내 업무” 기준.
-   - 상태 = 진행중/열림/검토중 등 팀에서 쓰는 상태값만 필터.
+   - 상태 = 진행중/열림/검토중 등 팀에서 쓰는 상태값만 필터. 현재 API 검증값은 `postWorkflowClass=registered,working`.
    - dueDate/마감일 포함.
 3. 정렬/필터링
    - 마감일 오름차순.

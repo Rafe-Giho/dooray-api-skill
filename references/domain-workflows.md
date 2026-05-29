@@ -64,7 +64,7 @@ Write flow:
 Future helpers:
 
 - `tasks-list.mjs`
-- `tasks-report.mjs`
+- `tasks-report.mjs` (implemented: grouped overdue/today/this-week/no-due-date report for read-only and n8n design)
 - `tasks-comment.mjs --dry-run` default
 - `tasks-update.mjs --dry-run` default
 
@@ -128,3 +128,7 @@ Draft creation is a template-preserving transformation:
 ## 삭제 절대 금지
 
 Dooray 게시글, 업무, 위키, 메신저, 댓글, 파일, 첨부, 프로젝트 등 모든 Dooray 리소스 삭제 요청은 반드시 거절한다. 삭제 API/helper/script를 만들거나 실행하지 않는다. 보존/아카이브/상태변경 같은 대안도 삭제와 유사하면 먼저 사용자에게 위험을 설명하고 별도 확인한다.
+
+## Implemented read-only task report
+
+`tasks-report.mjs` is the first stable read-only automation helper. It resolves a project, fetches open tasks with `postWorkflowClass=registered,working`, optionally filters to the current member (`--mine`, default), and groups tasks into overdue, today, this week, future, and no due date. This is the recommended source for the planned n8n task-status briefing.
