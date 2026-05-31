@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-import { loadConfig, doorayRequest, unwrap, pageLimit } from './dooray-common.mjs';
+import { loadConfig, unwrap, pageLimit } from './dooray-common.mjs';
+import { doorayRequest } from './dooray-http.mjs';
 
 function parse(argv){const a={project:null,limit:20,open:false,mine:false,includeCc:false,json:false,config:process.env.DOORAY_CONFIG}; for(let i=2;i<argv.length;i++){const x=argv[i]; if(x==='--project')a.project=argv[++i]; else if(x==='--limit')a.limit=Number(argv[++i]); else if(x==='--open')a.open=true; else if(x==='--mine')a.mine=true; else if(x==='--include-cc')a.includeCc=true; else if(x==='--json')a.json=true; else if(x==='--config')a.config=argv[++i]; else if(x==='--help'||x==='-h')a.help=true; else throw new Error(`Unknown argument: ${x}`);} return a;}
 function memberIds(ref){ if(ref.member?.organizationMemberId) return [ref.member.organizationMemberId]; return (ref.group?.members||[]).map(m=>m.organizationMemberId).filter(Boolean); }

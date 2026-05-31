@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
-import { loadConfig, doorayRequest, unwrap, expandHome } from './dooray-common.mjs';
+import { loadConfig, unwrap, expandHome } from './dooray-common.mjs';
+import { doorayRequest } from './dooray-http.mjs';
 
 const DEFAULT_PROJECT = 'AI기술혁신부(SE2)';
 function parse(argv){const a={project:DEFAULT_PROJECT,post:null,input:null,out:null,date:new Date().toISOString().slice(0,10),title:null,json:false,config:process.env.DOORAY_CONFIG}; for(let i=2;i<argv.length;i++){const x=argv[i]; if(x==='--project')a.project=argv[++i]; else if(x==='--post')a.post=argv[++i]; else if(x==='--input')a.input=argv[++i]; else if(x==='--out')a.out=argv[++i]; else if(x==='--date')a.date=argv[++i]; else if(x==='--title')a.title=argv[++i]; else if(x==='--json')a.json=true; else if(x==='--config')a.config=argv[++i]; else if(x==='--help'||x==='-h')a.help=true; else throw new Error(`Unknown argument: ${x}`);} return a;}

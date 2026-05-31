@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-import { loadConfig, doorayRequest, unwrap, pageLimit } from './dooray-common.mjs';
+import { loadConfig, unwrap, pageLimit } from './dooray-common.mjs';
+import { doorayRequest } from './dooray-http.mjs';
 
 function parse(argv){const a={type:null,project:null,wiki:null,channel:null,limit:10,json:false,config:process.env.DOORAY_CONFIG}; for(let i=2;i<argv.length;i++){const x=argv[i]; if(x==='--type')a.type=argv[++i]; else if(x==='--project')a.project=argv[++i]; else if(x==='--wiki')a.wiki=argv[++i]; else if(x==='--channel')a.channel=argv[++i]; else if(x==='--limit')a.limit=Number(argv[++i]); else if(x==='--json')a.json=true; else if(x==='--config')a.config=argv[++i]; else if(x==='--help'||x==='-h')a.help=true; else throw new Error(`Unknown argument: ${x}`);} return a;}
 function compactText(s,n=120){return String(s||'').replace(/\s+/g,' ').trim().slice(0,n);}

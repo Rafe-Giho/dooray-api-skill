@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-import { loadConfig, doorayRequest, unwrap } from './dooray-common.mjs';
+import { loadConfig, unwrap } from './dooray-common.mjs';
+import { doorayRequest } from './dooray-http.mjs';
 function parse(argv){const a={wiki:null,page:null,json:false,config:process.env.DOORAY_CONFIG}; for(let i=2;i<argv.length;i++){const x=argv[i]; if(x==='--wiki')a.wiki=argv[++i]; else if(x==='--page')a.page=argv[++i]; else if(x==='--json')a.json=true; else if(x==='--config')a.config=argv[++i]; else if(x==='--help'||x==='-h')a.help=true; else throw new Error(`Unknown argument: ${x}`);} return a;}
 const args=parse(process.argv); if(args.help||!args.wiki){console.log('Usage: node wiki-get.mjs --wiki <wiki-id-or-name> [--page <page-id>] [--json]');process.exit(args.help?0:2)}
 const {config}=loadConfig(args.config); const wikis=unwrap(await doorayRequest(config,'GET','/wiki/v1/wikis'));

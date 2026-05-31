@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
-import { loadConfig, readTokenWithSource, doorayRequest, expandHome, redact } from './dooray-common.mjs';
+import { loadConfig, readTokenWithSource, expandHome, redact } from './dooray-common.mjs';
+import { doorayRequest } from './dooray-http.mjs';
 
 function usage() {
   console.log(`Usage:

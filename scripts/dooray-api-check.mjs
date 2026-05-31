@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-import { loadConfig, readToken, doorayRequest, unwrap, redact } from './dooray-common.mjs';
+import { loadConfig, readToken, unwrap, redact } from './dooray-common.mjs';
+import { doorayRequest } from './dooray-http.mjs';
 
 function parse(argv) {
   const a = { project: 'AI기술혁신부(SE2)', wiki: 'AI기술혁신부(SE2)', messengerLimit: 5, json: false, config: process.env.DOORAY_CONFIG };

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-import { loadConfig, doorayRequest, unwrap, pageLimit } from './dooray-common.mjs';
+import { loadConfig, unwrap, pageLimit } from './dooray-common.mjs';
+import { doorayRequest } from './dooray-http.mjs';
 
 function parse(argv){
   const a={channel:'AI기술혁신부',limit:100,json:false,config:process.env.DOORAY_CONFIG};

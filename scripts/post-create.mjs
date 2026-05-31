@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
-import { loadConfig, doorayRequest, unwrap, expandHome } from './dooray-common.mjs';
+import { loadConfig, unwrap, expandHome } from './dooray-common.mjs';
+import { doorayRequest } from './dooray-http.mjs';
 
 function parse(argv){const a={project:null,subject:null,input:null,yes:false,json:false,config:process.env.DOORAY_CONFIG}; for(let i=2;i<argv.length;i++){const x=argv[i]; if(x==='--project')a.project=argv[++i]; else if(x==='--subject')a.subject=argv[++i]; else if(x==='--input')a.input=argv[++i]; else if(x==='--yes')a.yes=true; else if(x==='--json')a.json=true; else if(x==='--config')a.config=argv[++i]; else if(x==='--help'||x==='-h')a.help=true; else throw new Error(`Unknown argument: ${x}`);} return a;}
 const args=parse(process.argv);

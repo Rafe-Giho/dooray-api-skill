@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-import { loadConfig, doorayRequest, unwrap } from './dooray-common.mjs';
+import { loadConfig, unwrap } from './dooray-common.mjs';
+import { doorayRequest } from './dooray-http.mjs';
 function parse(argv){const a={project:null,post:null,json:false,config:process.env.DOORAY_CONFIG}; for(let i=2;i<argv.length;i++){const x=argv[i]; if(x==='--project')a.project=argv[++i]; else if(x==='--post')a.post=argv[++i]; else if(x==='--json')a.json=true; else if(x==='--config')a.config=argv[++i]; else if(x==='--help'||x==='-h')a.help=true; else throw new Error(`Unknown argument: ${x}`);} return a;}
 const args=parse(process.argv); if(args.help||!args.project||!args.post){console.log('Usage: node post-get.mjs --project <project-id-or-code> --post <post-id-or-task-number> [--json]');process.exit(args.help?0:2)}
 const {config}=loadConfig(args.config); const projects=unwrap(await doorayRequest(config,'GET','/project/v1/projects'));

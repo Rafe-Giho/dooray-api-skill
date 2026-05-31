@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-import { loadConfig, doorayRequest, unwrap, pageLimit } from './dooray-common.mjs';
+import { loadConfig, unwrap, pageLimit } from './dooray-common.mjs';
+import { doorayRequest } from './dooray-http.mjs';
 
 const DEFAULT_PROJECT = 'AI기술혁신부(SE2)';
 const DEFAULT_OPEN_CLASSES = 'registered,working';
