@@ -6,8 +6,9 @@ The Dooray skill should remain portable. Keep domain workflows and API wrappers 
 
 Preferred credential source:
 
-- macOS Keychain via `scripts/setup-keychain-token.sh`
+- macOS Keychain via `scripts/setup-keychain-token.mjs` with the optional `keytar` dependency installed (`npm install` in this skill directory)
 - local config: `~/.config/dooray/config.json`
+- or `DOORAY_API_TOKEN` / `DOORAY_API_TOKEN_FILE` when Keychain is not available
 
 Useful command:
 
@@ -52,7 +53,7 @@ Credential options:
 
 1. `DOORAY_API_TOKEN` environment variable
 2. `DOORAY_API_TOKEN_FILE` pointing to a local untracked file
-3. macOS Keychain when running on macOS
+3. macOS Keychain when running on macOS with the optional `keytar` dependency installed
 
 ## n8n
 

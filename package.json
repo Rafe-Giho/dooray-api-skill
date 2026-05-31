@@ -1,0 +1,12 @@
+{
+  "name": "openclaw-skill-dooray-api",
+  "private": true,
+  "type": "module",
+  "optionalDependencies": {
+    "keytar": "^7.9.0"
+  },
+  "scripts": {
+    "check": "for f in scripts/*.mjs; do node --check \"$f\"; done",
+    "setup-keychain-token": "node scripts/setup-keychain-token.mjs"
+  }
+}

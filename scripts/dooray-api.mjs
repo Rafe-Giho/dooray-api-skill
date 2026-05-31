@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
-import { loadConfig, readToken, doorayRequest, expandHome, redact } from './dooray-common.mjs';
+import { loadConfig, readTokenWithSource, doorayRequest, expandHome, redact } from './dooray-common.mjs';
 
 function usage() {
   console.log(`Usage:
@@ -39,9 +39,9 @@ if (args.command === 'config') {
   let tokenAvailable = false;
   let tokenSource = 'none';
   try {
-    await readToken(config);
+    const resolved = await readTokenWithSource(config);
     tokenAvailable = true;
-    tokenSource = process.env.DOORAY_API_TOKEN || process.env.DOORAY_TOKEN ? 'env' : (process.env.DOORAY_API_TOKEN_FILE || config.tokenFile ? 'file' : 'keychain');
+    tokenSource = resolved.source;
   } catch {}
   console.log(JSON.stringify({ configPath, config: redact(config), tokenAvailable, tokenSource }, null, 2));
   process.exit(0);

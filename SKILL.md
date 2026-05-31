@@ -42,13 +42,16 @@ Recommended shape:
 }
 ```
 
-Register a token locally on Mac/OpenClaw:
+Register a token locally on Mac/OpenClaw with the native Keychain adapter (`keytar`). First install the optional dependency in this skill directory if it is not already present:
 
 ```bash
-~/.openclaw/skills/dooray-api/scripts/setup-keychain-token.sh dooray-api-token default
+cd ~/.openclaw/skills/dooray-api && npm install
+node scripts/setup-keychain-token.mjs dooray-api-token default
 ```
 
-Check config/token without printing secrets. In portable environments, `DOORAY_API_TOKEN` or `DOORAY_API_TOKEN_FILE` is also supported:
+`setup-keychain-token.sh` remains as a compatibility wrapper around the Node helper; it no longer shells out to the macOS `security` CLI. In portable environments, `DOORAY_API_TOKEN` or `DOORAY_API_TOKEN_FILE` is also supported and does not require `keytar`.
+
+Check config/token without printing secrets:
 
 ```bash
 node ~/.openclaw/skills/dooray-api/scripts/dooray-api.mjs config
@@ -73,7 +76,7 @@ Helpers may print private company content locally; summarize carefully in chats.
 
 ## Core workflow
 
-1. If credentials are missing, help the user create `~/.config/dooray/config.json` and store a token with `setup-keychain-token.sh`.
+1. If credentials are missing, help the user create `~/.config/dooray/config.json` and either set `DOORAY_API_TOKEN`/`DOORAY_API_TOKEN_FILE` or install `keytar` and store a token with `setup-keychain-token.mjs`.
 2. Run `scripts/dooray-api-check.mjs --json` first when validating a new environment; it prints counts/metadata without dumping private content.
 3. For API reads, use `scripts/dooray-api.mjs request <METHOD> <PATH>` or a purpose-built helper.
 4. For writes, first dry-run or draft the payload; ask the user before sending.
