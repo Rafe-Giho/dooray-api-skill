@@ -1,11 +1,11 @@
-import { assertNonDelete, readToken, requestUrl } from './dooray-common.mjs';
+import { assertNonDelete, readToken, requestTimeoutMs, requestUrl } from './dooray-common.mjs';
 
 export async function doorayRequest(config, method, pathOrUrl, body) {
   assertNonDelete(method, pathOrUrl);
   const token = await readToken(config);
   const headers = { Authorization: `dooray-api ${token}`, Accept: 'application/json' };
   if (body != null) headers['Content-Type'] = 'application/json';
-  const timeoutMs = Math.max(1000, Number(process.env.DOORAY_API_TIMEOUT_MS || config.requestTimeoutMs || 15000) || 15000);
+  const timeoutMs = requestTimeoutMs(config);
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   let res;

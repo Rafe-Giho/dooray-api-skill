@@ -128,6 +128,9 @@ export async function readTokenWithSource(config) {
 export async function readToken(config) {
   return (await readTokenWithSource(config)).token;
 }
+export function requestTimeoutMs(config) {
+  return Math.max(1000, Number(process.env.DOORAY_API_TIMEOUT_MS || config.requestTimeoutMs || 15000) || 15000);
+}
 export function requestUrl(config, pathOrUrl) {
   const base = String(config.baseUrl || 'https://api.dooray.com').replace(/\/$/, '');
   if (/^https?:\/\//i.test(pathOrUrl)) {
