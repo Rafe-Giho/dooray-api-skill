@@ -1,7 +1,10 @@
 import fs from 'node:fs';
 import os from 'node:os';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 
 export const DEFAULT_CONFIG = '~/.config/dooray/config.json';
+const execFileAsync = promisify(execFile);
 
 export function expandHome(p) { return String(p || '').replace(/^~(?=$|\/)/, os.homedir()); }
 export function readJson(file) { return JSON.parse(fs.readFileSync(expandHome(file), 'utf8')); }
@@ -59,6 +62,19 @@ export async function readCredentialToken(config) {
   if (!token || !token.trim()) throw new Error(`empty credential-store token for service=${service}, account=${account}`);
   return token.trim();
 }
+export async function readMacOSSecurityToken(config) {
+  if (process.platform !== 'darwin') throw new Error('macOS security CLI is available only on macOS');
+  const { service, account } = credentialTarget(config);
+  const timeoutMs = Math.max(1000, Number(process.env.DOORAY_SECURITY_TIMEOUT_MS || config.securityLookupTimeoutMs || 5000) || 5000);
+  const { stdout } = await execFileAsync('/usr/bin/security', ['find-generic-password', '-s', service, '-a', account, '-w'], {
+    encoding: 'utf8',
+    maxBuffer: 64 * 1024,
+    timeout: timeoutMs,
+  });
+  const token = String(stdout || '').trim();
+  if (!token) throw new Error(`empty macOS Keychain token for service=${service}, account=${account}`);
+  return token;
+}
 export async function storeCredentialToken(config, token) {
   const value = String(token || '').trim();
   if (!value) throw new Error('Token is empty; aborting.');
@@ -77,6 +93,22 @@ export async function readTokenWithSource(config) {
     const token = fs.readFileSync(expandHome(filePath), 'utf8').trim();
     if (token) return { token, source: 'file' };
   }
+  const provider = String(process.env.DOORAY_API_TOKEN_PROVIDER || config.tokenProvider || config.credentialProvider || 'auto').toLowerCase();
+  const credentialErrors = [];
+  if ((provider === 'auto' || provider === 'mac-security' || provider === 'macos-security' || provider === 'security') && process.platform === 'darwin') {
+    try {
+      return { token: await readMacOSSecurityToken(config), source: 'macos-keychain-security' };
+    } catch (error) {
+      credentialErrors.push(`macOS security CLI: ${error.message}`);
+      if (provider !== 'auto') {
+        const { service, account } = credentialTarget(config);
+        throw new Error(`Dooray token not available from macOS security CLI: service=${service}, account=${account}. (${error.message})`);
+      }
+    }
+  }
+  if (provider !== 'auto' && provider !== 'keytar' && provider !== 'credential-store') {
+    throw new Error(`Unsupported Dooray tokenProvider: ${provider}`);
+  }
   try {
     const timeoutMs = Math.max(1000, Number(process.env.DOORAY_TOKEN_TIMEOUT_MS || config.tokenLookupTimeoutMs || 10000) || 10000);
     let timer;
@@ -88,8 +120,9 @@ export async function readTokenWithSource(config) {
     ]);
     return { token, source: 'credential-store' };
   } catch (error) {
+    credentialErrors.push(`keytar credential store: ${error.message}`);
     const { service, account } = credentialTarget(config);
-    throw new Error(`Dooray token not available. Set DOORAY_API_TOKEN/DOORAY_API_TOKEN_FILE, or install keytar and store it in the OS credential store with setup-token.mjs: service=${service}, account=${account}. (${error.message})`);
+    throw new Error(`Dooray token not available. Set DOORAY_API_TOKEN/DOORAY_API_TOKEN_FILE, use macOS Keychain security CLI, or install keytar and store it in the OS credential store with setup-token.mjs: service=${service}, account=${account}. (${credentialErrors.join(' | ')})`);
   }
 }
 export async function readToken(config) {

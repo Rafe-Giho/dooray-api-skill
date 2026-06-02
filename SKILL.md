@@ -44,7 +44,9 @@ Recommended shape:
 
 Legacy `tokenKeychainService` / `tokenKeychainAccount` config keys are still accepted for existing installs.
 
-Credential lookup order is `DOORAY_API_TOKEN`, then `DOORAY_API_TOKEN_FILE` or `config.tokenFile`, then OS credential store via optional `keytar`.
+Credential lookup order is `DOORAY_API_TOKEN`, then `DOORAY_API_TOKEN_FILE` or `config.tokenFile`, then macOS Keychain through the fixed `/usr/bin/security` CLI on macOS, then OS credential store via optional `keytar`.
+
+On macOS, existing Keychain items created by the legacy `security add-generic-password` helper remain usable without re-saving them through `keytar`. This avoids unattended OpenClaw/Mac mini runs blocking on a `node` Keychain prompt when the legacy Keychain item already exists.
 
 Register a token in the local OS credential store (macOS Keychain, Windows Credential Manager, or Linux Secret Service) when the runtime supports it:
 

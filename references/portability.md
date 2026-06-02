@@ -8,7 +8,8 @@ Credential lookup is intentionally tool-agnostic:
 
 1. `DOORAY_API_TOKEN`
 2. `DOORAY_API_TOKEN_FILE` or `config.tokenFile`
-3. OS credential store through optional `keytar`
+3. macOS Keychain through the fixed `/usr/bin/security` CLI on macOS
+4. OS credential store through optional `keytar`
 
 Use env/secret injection for Codex app, Codex CLI, Claude Code, CI, or n8n-style runners. Use the OS credential store for long-lived local desktops:
 
@@ -32,7 +33,7 @@ scripts\dooray-api-check.cmd --json
 
 ## OpenClaw
 
-OpenClaw can use any credential source available to the host. On a personal Mac mini, the OS credential store is convenient; on other nodes, use environment secrets or a token file outside Git.
+OpenClaw can use any credential source available to the host. On a personal Mac mini, the macOS Keychain `security` CLI path is preferred when a legacy Keychain item already exists, because it avoids `node`/`keytar` access prompts during unattended runs. On other nodes, use environment secrets or a token file outside Git.
 
 ```bash
 node scripts/setup-token.mjs dooray-api-token default
