@@ -5,7 +5,18 @@ export async function doorayRequest(config, method, pathOrUrl, body) {
   const token = await readToken(config);
   const headers = { Authorization: `dooray-api ${token}`, Accept: 'application/json' };
   if (body != null) headers['Content-Type'] = 'application/json';
-  const res = await fetch(requestUrl(config, pathOrUrl), { method: method.toUpperCase(), headers, body });
+  const timeoutMs = Math.max(1000, Number(process.env.DOORAY_API_TIMEOUT_MS || config.requestTimeoutMs || 15000) || 15000);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  let res;
+  try {
+    res = await fetch(requestUrl(config, pathOrUrl), { method: method.toUpperCase(), headers, body, signal: controller.signal });
+  } catch (error) {
+    if (error?.name === 'AbortError') throw new Error(`Dooray API ${method} ${pathOrUrl} timed out after ${timeoutMs}ms`);
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
   const text = await res.text();
   let parsed = text;
   try { parsed = JSON.parse(text); } catch {}

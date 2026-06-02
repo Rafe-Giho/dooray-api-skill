@@ -10,30 +10,65 @@ export function loadConfig(configPath = process.env.DOORAY_CONFIG || DEFAULT_CON
   if (!fs.existsSync(file)) throw new Error(`Missing Dooray config: ${file}`);
   return { configPath: file, config: readJson(file) };
 }
+export function configDefault(config, keys, fallback = null) {
+  for (const key of Array.isArray(keys) ? keys : [keys]) {
+    let value = config;
+    for (const part of String(key).split('.')) value = value?.[part];
+    if (value !== undefined && value !== null && value !== '') return value;
+  }
+  return fallback;
+}
+export function asArray(value) {
+  if (value === undefined || value === null || value === '') return [];
+  return Array.isArray(value) ? value.filter(v => v !== undefined && v !== null && v !== '') : [value];
+}
+export function webBaseUrl(config) {
+  const raw = configDefault(config, ['webBaseUrl', 'tenantBaseUrl', 'doorayWebBaseUrl', 'tenantUrl'], null);
+  if (!raw) return null;
+  const url = new URL(raw);
+  if (url.protocol !== 'https:') throw new Error(`Dooray webBaseUrl must use https: ${url.origin}`);
+  return url.toString().replace(/\/$/, '');
+}
+export function doorayWebUrl(config, path) {
+  const base = webBaseUrl(config);
+  if (!base) return null;
+  return new URL(String(path || '/').replace(/^\/?/, '/'), `${base}/`).toString();
+}
 async function loadKeytar() {
   try {
     return await import('keytar');
   } catch (error) {
-    throw new Error(`macOS Keychain token lookup requires the optional keytar package. Run npm install in the dooray-api skill directory, or set DOORAY_API_TOKEN/DOORAY_API_TOKEN_FILE. (${error.message})`);
+    throw new Error(`OS credential-store token lookup requires the optional keytar package. Run npm install in the dooray-api skill directory, or set DOORAY_API_TOKEN/DOORAY_API_TOKEN_FILE. (${error.message})`);
   }
 }
-export async function readKeychainToken(config) {
-  const service = config.tokenKeychainService || 'dooray-api-token';
-  const account = config.tokenKeychainAccount || 'default';
+export function credentialStoreName() {
+  if (process.platform === 'darwin') return 'macOS Keychain';
+  if (process.platform === 'win32') return 'Windows Credential Manager';
+  return 'Secret Service/libsecret credential store';
+}
+export function credentialTarget(config) {
+  return {
+    service: config.tokenCredentialService || config.tokenKeychainService || 'dooray-api-token',
+    account: config.tokenCredentialAccount || config.tokenKeychainAccount || 'default',
+  };
+}
+export async function readCredentialToken(config) {
+  const { service, account } = credentialTarget(config);
   const keytar = await loadKeytar();
   const token = await keytar.getPassword(service, account);
-  if (!token || !token.trim()) throw new Error(`empty Keychain token for service=${service}, account=${account}`);
+  if (!token || !token.trim()) throw new Error(`empty credential-store token for service=${service}, account=${account}`);
   return token.trim();
 }
-export async function storeKeychainToken(config, token) {
+export async function storeCredentialToken(config, token) {
   const value = String(token || '').trim();
   if (!value) throw new Error('Token is empty; aborting.');
-  const service = config.tokenKeychainService || 'dooray-api-token';
-  const account = config.tokenKeychainAccount || 'default';
+  const { service, account } = credentialTarget(config);
   const keytar = await loadKeytar();
   await keytar.setPassword(service, account, value);
-  return { service, account };
+  return { service, account, store: credentialStoreName() };
 }
+export const readKeychainToken = readCredentialToken;
+export const storeKeychainToken = storeCredentialToken;
 export async function readTokenWithSource(config) {
   const envToken = process.env.DOORAY_API_TOKEN || process.env.DOORAY_TOKEN;
   if (envToken && envToken.trim()) return { token: envToken.trim(), source: 'env' };
@@ -43,19 +78,33 @@ export async function readTokenWithSource(config) {
     if (token) return { token, source: 'file' };
   }
   try {
-    return { token: await readKeychainToken(config), source: 'keychain' };
+    const timeoutMs = Math.max(1000, Number(process.env.DOORAY_TOKEN_TIMEOUT_MS || config.tokenLookupTimeoutMs || 10000) || 10000);
+    let timer;
+    const token = await Promise.race([
+      readCredentialToken(config).finally(() => clearTimeout(timer)),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`credential-store token lookup timed out after ${timeoutMs}ms`)), timeoutMs);
+      }),
+    ]);
+    return { token, source: 'credential-store' };
   } catch (error) {
-    const service = config.tokenKeychainService || 'dooray-api-token';
-    const account = config.tokenKeychainAccount || 'default';
-    throw new Error(`Dooray token not available. Set DOORAY_API_TOKEN/DOORAY_API_TOKEN_FILE, or install keytar and store it in macOS Keychain with setup-keychain-token.mjs: service=${service}, account=${account}. (${error.message})`);
+    const { service, account } = credentialTarget(config);
+    throw new Error(`Dooray token not available. Set DOORAY_API_TOKEN/DOORAY_API_TOKEN_FILE, or install keytar and store it in the OS credential store with setup-token.mjs: service=${service}, account=${account}. (${error.message})`);
   }
 }
 export async function readToken(config) {
   return (await readTokenWithSource(config)).token;
 }
 export function requestUrl(config, pathOrUrl) {
-  if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
   const base = String(config.baseUrl || 'https://api.dooray.com').replace(/\/$/, '');
+  if (/^https?:\/\//i.test(pathOrUrl)) {
+    const target = new URL(pathOrUrl);
+    const allowed = new URL(base);
+    if (target.origin !== allowed.origin) {
+      throw new Error(`Refusing to send Dooray API token to non-configured host: ${target.origin}`);
+    }
+    return target.toString();
+  }
   const path = String(pathOrUrl || '').startsWith('/') ? pathOrUrl : `/${pathOrUrl}`;
   return `${base}${path}`;
 }

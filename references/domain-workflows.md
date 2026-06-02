@@ -20,7 +20,7 @@ Use Service API by default for all user/content work. Management/Admin API is ou
 - app/integration administration
 - global retention/security policy changes
 
-For 기호님의 planned workflows, Service API should be enough. If a specific endpoint is unavailable in Service API, pause and confirm before considering Management/Admin API.
+For user/content workflows, Service API should be enough. If a specific endpoint is unavailable in Service API, pause and confirm before considering Management/Admin API.
 
 ## 게시글 / 메신저 workflow
 
@@ -110,9 +110,9 @@ OpenClaw role:
 - audit security and message format
 - run local one-off checks when requested
 
-## AI기술혁신부 weekly report draft
+## Weekly report draft
 
-Primary target: `AI기술혁신부(SE2)`. Treat other departments as future configuration, not a different algorithm.
+Set the target Project with `--project` or `defaults.project` in the local config. Different departments/projects should be configuration, not a different algorithm.
 
 Draft creation is a template-preserving transformation:
 

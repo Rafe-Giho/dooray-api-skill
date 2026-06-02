@@ -1,5 +1,7 @@
 #!/usr/bin/env node
-import { loadConfig, storeKeychainToken } from './dooray-common.mjs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { credentialStoreName, loadConfig, storeCredentialToken } from './dooray-common.mjs';
 
 function parse(argv) {
   const args = { service: null, account: null, config: process.env.DOORAY_CONFIG, token: process.env.DOORAY_API_TOKEN || process.env.DOORAY_TOKEN };
@@ -51,14 +53,19 @@ async function readSecret(prompt) {
   });
 }
 
-const args = parse(process.argv);
+export async function main(argv = process.argv) {
+const args = parse(argv);
 if (args.help) {
   console.log(`Usage:
-  node setup-keychain-token.mjs [service] [account] [--config FILE]
-  printf '%s' "$DOORAY_API_TOKEN" | node setup-keychain-token.mjs --token-stdin
+  node setup-token.mjs [service] [account] [--config FILE]
+  printf '%s' "$DOORAY_API_TOKEN" | node setup-token.mjs --token-stdin
 
-Requires the optional keytar package: run npm install in this skill directory first.`);
-  process.exit(0);
+Stores the token in the current OS credential store (${credentialStoreName()} on this machine).
+Requires the optional keytar package: run npm install in this skill directory first.
+
+Compatibility alias:
+  node setup-keychain-token.mjs [service] [account]`);
+  return 0;
 }
 let baseConfig = {};
 try {
@@ -68,11 +75,18 @@ try {
 }
 const config = {
   ...baseConfig,
-  ...(args.service ? { tokenKeychainService: args.service } : {}),
-  ...(args.account ? { tokenKeychainAccount: args.account } : {}),
+  ...(args.service ? { tokenCredentialService: args.service } : {}),
+  ...(args.account ? { tokenCredentialAccount: args.account } : {}),
 };
-const service = config.tokenKeychainService || 'dooray-api-token';
-const account = config.tokenKeychainAccount || 'default';
+const service = config.tokenCredentialService || config.tokenKeychainService || 'dooray-api-token';
+const account = config.tokenCredentialAccount || config.tokenKeychainAccount || 'default';
 const token = args.tokenStdin ? await readAllStdin() : (args.token || await readSecret(`Dooray API token for service=${service} account=${account}: `));
-const stored = await storeKeychainToken(config, token);
-console.log(`Stored Dooray API token in macOS Keychain: service=${stored.service} account=${stored.account}`);
+const stored = await storeCredentialToken(config, token);
+console.log(`Stored Dooray API token in ${stored.store}: service=${stored.service} account=${stored.account}`);
+return 0;
+}
+
+const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : '';
+if (invokedPath && invokedPath === fileURLToPath(import.meta.url)) {
+  process.exit(await main(process.argv));
+}

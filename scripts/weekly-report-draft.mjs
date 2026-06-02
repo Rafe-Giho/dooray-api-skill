@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
-import { loadConfig, unwrap, expandHome } from './dooray-common.mjs';
+import { configDefault, loadConfig, unwrap, expandHome } from './dooray-common.mjs';
 import { doorayRequest } from './dooray-http.mjs';
 
-const DEFAULT_PROJECT = 'AI기술혁신부(SE2)';
-function parse(argv){const a={project:DEFAULT_PROJECT,post:null,input:null,out:null,date:new Date().toISOString().slice(0,10),title:null,json:false,config:process.env.DOORAY_CONFIG}; for(let i=2;i<argv.length;i++){const x=argv[i]; if(x==='--project')a.project=argv[++i]; else if(x==='--post')a.post=argv[++i]; else if(x==='--input')a.input=argv[++i]; else if(x==='--out')a.out=argv[++i]; else if(x==='--date')a.date=argv[++i]; else if(x==='--title')a.title=argv[++i]; else if(x==='--json')a.json=true; else if(x==='--config')a.config=argv[++i]; else if(x==='--help'||x==='-h')a.help=true; else throw new Error(`Unknown argument: ${x}`);} return a;}
+function parse(argv){const a={project:null,post:null,input:null,out:null,date:new Date().toISOString().slice(0,10),title:null,json:false,config:process.env.DOORAY_CONFIG}; for(let i=2;i<argv.length;i++){const x=argv[i]; if(x==='--project')a.project=argv[++i]; else if(x==='--post')a.post=argv[++i]; else if(x==='--input')a.input=argv[++i]; else if(x==='--out')a.out=argv[++i]; else if(x==='--date')a.date=argv[++i]; else if(x==='--title')a.title=argv[++i]; else if(x==='--json')a.json=true; else if(x==='--config')a.config=argv[++i]; else if(x==='--help'||x==='-h')a.help=true; else throw new Error(`Unknown argument: ${x}`);} return a;}
 function mondayOf(d){const x=new Date(`${d}T00:00:00+09:00`); const day=x.getDay()||7; x.setDate(x.getDate()-day+1); return x;}
 function weekOfMonth(dateStr){const d=new Date(`${dateStr}T00:00:00+09:00`); const week=Math.ceil(d.getDate()/7); return `${d.getMonth()+1}월 ${week}주차`;}
 function defaultTitle(dateStr){return `${weekOfMonth(dateStr)} 주간업무보고서`;} 
@@ -74,9 +73,9 @@ function draft(content,{date,title}){
   text=filterLeaveAndTravel(text,date);
   return text;
 }
-const args=parse(process.argv); if(args.help||(!args.post&&!args.input)){console.log('Usage: node weekly-report-draft.mjs [--project AI기술혁신부(SE2)] (--post <post-id> | --input previous.md) [--date YYYY-MM-DD] [--title TITLE] [--out draft.md] [--json]');process.exit(args.help?0:2)}
+const args=parse(process.argv); if(args.help||(!args.post&&!args.input)){console.log('Usage: node weekly-report-draft.mjs [--project <id-or-code>] (--post <post-id> | --input previous.md) [--date YYYY-MM-DD] [--title TITLE] [--out draft.md] [--json]');process.exit(args.help?0:2)}
 let source={type:args.input?'file':'dooray'}; let content=''; let sourcePost=null;
-if(args.input){content=fs.readFileSync(expandHome(args.input),'utf8'); source.path=expandHome(args.input);} else {const {config}=loadConfig(args.config); const fetched=await fetchPost(config,args.project,args.post); content=fetched.content; sourcePost=fetched.post; source={type:'dooray',project:fetched.project.code,postId:fetched.post.id,taskNumber:fetched.post.taskNumber,subject:fetched.post.subject};}
+if(args.input){content=fs.readFileSync(expandHome(args.input),'utf8'); source.path=expandHome(args.input);} else {const {config}=loadConfig(args.config); const project=args.project||configDefault(config,['defaults.project','defaults.taskProjects.0','defaultProject'],null); if(!project) throw new Error('Missing project. Pass --project <id-or-code> or set defaults.project in the Dooray config.'); const fetched=await fetchPost(config,project,args.post); content=fetched.content; sourcePost=fetched.post; source={type:'dooray',project:fetched.project.code,postId:fetched.post.id,taskNumber:fetched.post.taskNumber,subject:fetched.post.subject};}
 const title=args.title||defaultTitle(args.date); const output=draft(content,{date:args.date,title});
 if(args.out) fs.writeFileSync(expandHome(args.out),output);
 if(args.json) console.log(JSON.stringify({source,date:args.date,title,out:args.out?expandHome(args.out):null,content:output},null,2)); else console.log(output);

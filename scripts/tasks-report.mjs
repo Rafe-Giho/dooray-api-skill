@@ -1,13 +1,11 @@
 #!/usr/bin/env node
-import { loadConfig, unwrap, pageLimit } from './dooray-common.mjs';
+import { asArray, configDefault, doorayWebUrl, loadConfig, unwrap, pageLimit } from './dooray-common.mjs';
 import { doorayRequest } from './dooray-http.mjs';
 
-const DEFAULT_PROJECT = 'AI기술혁신부(SE2)';
 const DEFAULT_OPEN_CLASSES = 'registered,working';
 
 function parse(argv) {
   const a = {
-    project: DEFAULT_PROJECT,
     projects: [],
     limit: 30,
     mine: true,
@@ -30,8 +28,17 @@ function parse(argv) {
     else if (x === '--help' || x === '-h') a.help = true;
     else throw new Error(`Unknown argument: ${x}`);
   }
-  if (!a.projects.length) a.projects = [a.project];
   return a;
+}
+function configuredProjects(config) {
+  return asArray(configDefault(config, [
+    'defaults.taskProjects',
+    'taskProjects',
+    'defaultTaskProjects',
+    'defaults.projects',
+    'defaults.project',
+    'defaultProject',
+  ], []));
 }
 function todayKst() {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
@@ -63,10 +70,10 @@ function includesMe(task, me, includeCc) {
   if (includeCc) refs.push(...(task.users?.cc || []));
   return refs.some(ref => memberIdsFromRef(ref).includes(me.id));
 }
-function taskUrl(project, task) {
-  return `https://jininfra.dooray.com/project/projects/${project.id}/posts/${task.id}`;
+function taskUrl(config, project, task) {
+  return doorayWebUrl(config, `/project/projects/${project.id}/posts/${task.id}`);
 }
-function compactTask(project, task, today) {
+function compactTask(config, project, task, today) {
   const due = compactDate(task.dueDate);
   const dday = due ? daysBetween(due, today) : null;
   return {
@@ -82,7 +89,7 @@ function compactTask(project, task, today) {
     from: task.users?.from?.member?.name || null,
     to: membersFromRefs(task.users?.to || []).map(m => m.name),
     cc: membersFromRefs(task.users?.cc || []).map(m => m.name),
-    url: taskUrl(project, task),
+    url: taskUrl(config, project, task),
   };
 }
 function categorize(tasks, today) {
@@ -109,6 +116,10 @@ if (args.help) {
   process.exit(0);
 }
 const { config } = loadConfig(args.config);
+if (!args.allProjects && !args.projects.length) args.projects = configuredProjects(config);
+if (!args.allProjects && !args.projects.length) {
+  throw new Error('Missing project scope. Pass --project <id-or-code> or set defaults.taskProjects in the Dooray config.');
+}
 const projects = unwrap(await doorayRequest(config, 'GET', '/project/v1/projects'));
 const selected = args.allProjects ? projects : args.projects.map(key => {
   const p = projects.find(x => x.id === key || x.code === key);
@@ -127,7 +138,7 @@ for (const project of selected) {
   const tasks = unwrap(data)
     .filter(t => !t.closed)
     .filter(t => !args.mine || includesMe(t, me, args.includeCc))
-    .map(t => compactTask(project, t, args.date));
+    .map(t => compactTask(config, project, t, args.date));
   all.push(...tasks);
 }
 const groups = categorize(all, args.date);

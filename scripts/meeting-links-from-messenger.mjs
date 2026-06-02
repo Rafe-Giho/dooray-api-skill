@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-import { loadConfig, unwrap, pageLimit } from './dooray-common.mjs';
+import { configDefault, loadConfig, unwrap, pageLimit } from './dooray-common.mjs';
 import { doorayRequest } from './dooray-http.mjs';
 
 function parse(argv){
-  const a={channel:'AI기술혁신부',limit:100,json:false,config:process.env.DOORAY_CONFIG};
+  const a={channel:null,limit:100,json:false,config:process.env.DOORAY_CONFIG};
   for(let i=2;i<argv.length;i++){
     const x=argv[i];
     if(x==='--channel') a.channel=argv[++i];
@@ -18,10 +18,12 @@ function parse(argv){
 
 const args=parse(process.argv);
 if(args.help){
-  console.log('Usage: node meeting-links-from-messenger.mjs [--channel AI기술혁신부] [--limit 100] [--json]');
+  console.log('Usage: node meeting-links-from-messenger.mjs --channel <id-or-title> [--limit 100] [--json]');
   process.exit(0);
 }
 const {config}=loadConfig(args.config);
+args.channel ||= configDefault(config, ['defaults.messengerChannel', 'defaults.messageTarget', 'defaultMessengerChannel'], null);
+if(!args.channel) throw new Error('Missing messenger channel. Pass --channel <id-or-title> or set defaults.messengerChannel in the Dooray config.');
 const channels=unwrap(await doorayRequest(config,'GET','/messenger/v1/channels'));
 const channel=channels.find(c=>c.id===args.channel||c.title===args.channel);
 if(!channel) throw new Error(`Channel not found: ${args.channel}`);

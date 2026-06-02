@@ -15,6 +15,11 @@ Examples:
 }
 function parseArgs(argv) {
   const args = { command: argv[2], rest: [], config: process.env.DOORAY_CONFIG || '~/.config/dooray/config.json', data: null };
+  if (args.command === '--help' || args.command === '-h') {
+    args.command = null;
+    args.help = true;
+    return args;
+  }
   for (let i = 3; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--config') args.config = argv[++i];

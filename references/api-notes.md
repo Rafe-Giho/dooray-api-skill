@@ -35,7 +35,7 @@ Do not use Management/Admin API unless the user explicitly asks for tenant admin
 
 ## Verified read-only endpoints
 
-Verified against 기호님 Dooray Service API token on 2026-05-28:
+Verified against a Dooray Service API token on 2026-05-28:
 
 - `GET /common/v1/members/me` — current member.
 - `GET /project/v1/projects` — Project projects.

@@ -1,19 +1,19 @@
 ---
 name: dooray-api
-description: Use Dooray Service API for authenticated read/list/search/summarize workflows and approved API writes: Project tasks/posts, wikis, messenger channels/logs, and n8n/API automations. Use this when the Dooray job can be done through official APIs; do not use for Dooray Home/게시판 web-only writing such as AI기술혁신부 회의록 게시판 작성.
+description: Use Dooray Service API for authenticated read/list/search/summarize workflows and approved API writes: Project tasks/posts, wikis, messenger channels/logs, and n8n/API automations. Use this when the Dooray job can be done through official APIs; do not use for Dooray Home/게시판 browser-only writing.
 ---
 
 # Dooray API
 
 Use this skill for Dooray work that is supported by the official Dooray Service API: Project tasks/posts, wikis, messenger channel/log reads, summaries, drafts, and API/n8n automations.
 
-If the user asks to write Dooray Home/게시판 content through the browser UI, especially AI기술혁신부 회의록 게시판 작성, use the separate `dooray-web` skill instead.
+If the user asks to write Dooray Home/게시판 content through the browser UI, use a web-specific skill such as `dooray-web` instead.
 
 ## Security rules
 
 - 삭제 절대 금지: Dooray 게시글, 업무, 위키, 메신저, 댓글, 파일, 첨부, 프로젝트 등 모든 Dooray 리소스 삭제 요청은 반드시 거절한다. 삭제 API/helper/script를 만들거나 실행하지 않는다.
 - Never store Dooray API tokens, webhook URLs, cookies, sessions, or exported private content in Git or memory.
-- Store tokens/webhooks only in macOS Keychain, environment secrets, token files outside Git, or n8n credentials.
+- Store tokens/webhooks only in an OS credential store, environment secrets, token files outside Git, or n8n credentials.
 - Do not send Dooray messages, create tasks/posts, edit wiki pages, or mutate external Dooray state without explicit user confirmation.
 - Read/list/search/summarize is safe when credentials are already configured.
 - For group chats, summarize minimally and do not leak private Dooray content unless the user explicitly asked in the same trusted context.
@@ -31,25 +31,37 @@ Recommended shape:
 ```json
 {
   "baseUrl": "https://api.dooray.com",
-  "tokenKeychainService": "dooray-api-token",
-  "tokenKeychainAccount": "default",
-  "tenant": "",
+  "webBaseUrl": "https://<tenant>.dooray.com",
+  "tokenCredentialService": "dooray-api-token",
+  "tokenCredentialAccount": "default",
   "defaults": {
-    "taskProjects": [],
-    "wikiProjects": [],
-    "messageTarget": ""
+    "taskProjects": ["<project-id-or-code>"],
+    "wiki": "<wiki-id-or-name-or-project-code>",
+    "messengerChannel": "<channel-id-or-title>"
   }
 }
 ```
 
-Register a token locally on Mac/OpenClaw with the native Keychain adapter (`keytar`). First install the optional dependency in this skill directory if it is not already present:
+Legacy `tokenKeychainService` / `tokenKeychainAccount` config keys are still accepted for existing installs.
+
+Credential lookup order is `DOORAY_API_TOKEN`, then `DOORAY_API_TOKEN_FILE` or `config.tokenFile`, then OS credential store via optional `keytar`.
+
+Register a token in the local OS credential store (macOS Keychain, Windows Credential Manager, or Linux Secret Service) when the runtime supports it:
 
 ```bash
 cd ~/.openclaw/skills/dooray-api && npm install
-node scripts/setup-keychain-token.mjs dooray-api-token default
+node scripts/setup-token.mjs dooray-api-token default
 ```
 
-`setup-keychain-token.sh` remains as a compatibility wrapper around the Node helper; it no longer shells out to the macOS `security` CLI. In portable environments, `DOORAY_API_TOKEN` or `DOORAY_API_TOKEN_FILE` is also supported and does not require `keytar`.
+On Windows/Codex shells, the included `.cmd` wrappers avoid PATH aliases when possible:
+
+```bat
+scripts\dooray-api.cmd config
+scripts\dooray-api-check.cmd --json
+scripts\setup-token.cmd dooray-api-token default
+```
+
+`setup-keychain-token.mjs`, `setup-keychain-token.sh`, and `setup-keychain-token.cmd` remain compatibility aliases around the Node helper. Portable agent environments can use `DOORAY_API_TOKEN` or `DOORAY_API_TOKEN_FILE` without installing `keytar`.
 
 Check config/token without printing secrets:
 
@@ -62,21 +74,21 @@ node ~/.openclaw/skills/dooray-api/scripts/dooray-api.mjs config
 - `scripts/dooray-api-check.mjs` — safe read-only smoke check for token, current member, projects, open Project posts, wiki access, and messenger channels.
 - `scripts/projects-list.mjs` — list Project projects and wiki ids.
 - `scripts/tasks-list.mjs --project <id-or-code>` — list task/post summaries for a project; `--open` uses verified `postWorkflowClass=registered,working`; `--mine` matches the current member in assignees.
-- `scripts/tasks-report.mjs --project AI기술혁신부(SE2) --mine` — read-only 진행중/마감 업무 report grouped by overdue/today/this-week/no-due-date for API/n8n automation design.
+- `scripts/tasks-report.mjs --project <id-or-code> --mine` — read-only 진행중/마감 업무 report grouped by overdue/today/this-week/no-due-date for API/n8n automation design. If `--project` is omitted, it uses `defaults.taskProjects` from config.
 - `scripts/post-get.mjs --project <id-or-code> --post <id-or-number-or-taskNumber>` — fetch one Project post/task body; task-number resolution checks both default and open post lists.
 - `scripts/post-create.mjs --project <id-or-code> --subject "title" --input draft.md --yes` — create a Project post only after explicit user approval.
 - `scripts/wikis-list.mjs` — list readable wikis.
 - `scripts/wiki-get.mjs --wiki <id-or-name-or-project-code>` — fetch a wiki page, defaulting to the home page.
 - `scripts/messenger-list.mjs` — list messenger channels/rooms.
 - `scripts/messenger-logs.mjs --channel <id-or-title>` — fetch recent message logs.
-- `scripts/meeting-links-from-messenger.mjs --channel AI기술혁신부 --limit 100` — read messenger logs and extract recent `/home/<homeId>/<postId>` links for use by `dooray-web`.
+- `scripts/meeting-links-from-messenger.mjs --channel <id-or-title> --limit 100` — read messenger logs and extract recent `/home/<homeId>/<postId>` links for use by a web-specific Dooray workflow. If `--channel` is omitted, it uses `defaults.messengerChannel` from config.
 - `scripts/weekly-report-draft.mjs` — draft from a Project post or local markdown. Do not use it to upload Home/게시판 posts.
 
 Helpers may print private company content locally; summarize carefully in chats.
 
 ## Core workflow
 
-1. If credentials are missing, help the user create `~/.config/dooray/config.json` and either set `DOORAY_API_TOKEN`/`DOORAY_API_TOKEN_FILE` or install `keytar` and store a token with `setup-keychain-token.mjs`.
+1. If credentials are missing, help the user create `~/.config/dooray/config.json` and either set `DOORAY_API_TOKEN`/`DOORAY_API_TOKEN_FILE` or install `keytar` and store a token with `setup-token.mjs`.
 2. Run `scripts/dooray-api-check.mjs --json` first when validating a new environment; it prints counts/metadata without dumping private content.
 3. For API reads, use `scripts/dooray-api.mjs request <METHOD> <PATH>` or a purpose-built helper.
 4. For writes, first dry-run or draft the payload; ask the user before sending.
@@ -85,7 +97,7 @@ Helpers may print private company content locally; summarize carefully in chats.
 
 ## Boundary with `dooray-web`
 
-Dooray Home/게시판 URLs such as `https://jininfra.dooray.com/home/<homeId>/<postId>` are not Project task posts. Do **not** use `POST /project/v1/projects/{projectId}/posts` to create AI기술혁신부 회의록; that creates a Project 업무 item. Use `dooray-web` for browser/UI automation.
+Dooray Home/게시판 URLs such as `https://<tenant>.dooray.com/home/<homeId>/<postId>` are not Project task posts. Do **not** use `POST /project/v1/projects/{projectId}/posts` to create Home/게시판 posts; that creates a Project 업무 item. Use a web-specific skill for browser/UI automation.
 
 API helpers may still be used to discover source links from Dooray Messenger or prepare local drafts, but browser posting belongs to `dooray-web`.
 

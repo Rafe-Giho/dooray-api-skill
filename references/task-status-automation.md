@@ -1,4 +1,4 @@
-# Dooray 내 Task 진행상태/기한 요약 n8n 자동화 준비안
+# Dooray Task 진행상태/기한 요약 n8n 자동화 준비안
 
 ## 결론
 가능성이 높으므로 나중에 구축할 후보로 보관한다.
@@ -9,7 +9,7 @@
 - Task 조회, 메시지 전송이 둘 다 가능해 보이므로 “내 진행중 task와 기한을 모아 Dooray 메신저로 알림” 구조가 적합하다.
 
 ## 목표
-주기적으로 Dooray에서 기호님의 진행중 Task 목록과 기한을 수집하고, 요약 메시지를 Dooray 메신저 채널/DM으로 전송한다.
+주기적으로 Dooray에서 사용자의 진행중 Task 목록과 기한을 수집하고, 요약 메시지를 Dooray 메신저 채널/DM으로 전송한다.
 
 ## 권장 구조
 n8n 워크플로우로 구현한다. 누트가 직접 메시지를 던지는 방식이 아니라, n8n이 스케줄에 따라 정보를 수집하고 Dooray 메신저로 발송한다.
@@ -18,8 +18,8 @@ n8n 워크플로우로 구현한다. 누트가 직접 메시지를 던지는 방
    - 예: 평일 오전 9시, 또는 매주 월요일 오전 등.
 2. Dooray Task 조회
    - 개인 API 토큰 사용.
-   - 1차 검증 helper: `scripts/tasks-report.mjs --project AI기술혁신부(SE2) --mine --json`
-   - 담당자 = 기호님 또는 “내 업무” 기준.
+   - 1차 검증 helper: `scripts/tasks-report.mjs --project <id-or-code> --mine --json`
+   - 담당자 = 현재 API 토큰 사용자 또는 “내 업무” 기준.
    - 상태 = 진행중/열림/검토중 등 팀에서 쓰는 상태값만 필터. 현재 API 검증값은 `postWorkflowClass=registered,working`.
    - dueDate/마감일 포함.
 3. 정렬/필터링
@@ -75,7 +75,7 @@ n8n 워크플로우로 구현한다. 누트가 직접 메시지를 던지는 방
 - Dooray 메신저 직접 전송이 제한되면 Incoming Webhook 채널로 발송.
 
 ## 나중에 구축 시작 조건
-기호님이 아래 정보를 주면 바로 설계/구현 가능:
+사용자가 아래 정보를 주면 바로 설계/구현 가능:
 - Dooray 접속/테넌트 유형 및 API base URL
 - 개인 API 토큰 발급 가능 여부
 - 알림 받을 Dooray 메신저 위치(DM/채널)
