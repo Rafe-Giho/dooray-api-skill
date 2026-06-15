@@ -4,6 +4,8 @@ Portable AgentSkill for Dooray Service API workflows: read/list/search/summarize
 
 한국어 요약: Dooray Service API로 프로젝트 업무, 위키, 메신저 채널/로그를 안전하게 조회·요약하고, 명시 승인된 쓰기 작업만 수행하도록 돕는 범용 에이전트 스킬입니다.
 
+Maintainer: [Rafe-Giho](https://github.com/Rafe-Giho)
+
 ## What It Can Do
 
 - Verify Dooray API credentials without printing secrets.
