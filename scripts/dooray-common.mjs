@@ -13,8 +13,23 @@ export function readJson(file) {
 }
 export function loadConfig(configPath = process.env.DOORAY_CONFIG || DEFAULT_CONFIG) {
   const file = expandHome(configPath);
-  if (!fs.existsSync(file)) throw new Error(`Missing Dooray config: ${file}`);
-  return { configPath: file, config: readJson(file) };
+  try {
+    return { configPath: file, config: readJson(file) };
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      throw new Error(`Missing Dooray config: ${file}. Create it or set DOORAY_CONFIG to a readable config file.`);
+    }
+    if (error?.code === 'EACCES' || error?.code === 'EPERM') {
+      throw new Error(`Cannot access Dooray config: ${file}. Check file permissions or sandbox access. (${error.code}: ${error.message})`);
+    }
+    if (error?.code === 'ENOTDIR') {
+      throw new Error(`Invalid Dooray config path: ${file}. One path component is not a directory. (${error.message})`);
+    }
+    if (error instanceof SyntaxError) {
+      throw new Error(`Invalid Dooray config JSON: ${file}. (${error.message})`);
+    }
+    throw error;
+  }
 }
 export function configDefault(config, keys, fallback = null) {
   for (const key of Array.isArray(keys) ? keys : [keys]) {

@@ -13,7 +13,7 @@ If the user asks to write Dooray Home/게시판 content through the browser UI, 
 
 - 삭제 절대 금지: Dooray 게시글, 업무, 위키, 메신저, 댓글, 파일, 첨부, 프로젝트 등 모든 Dooray 리소스 삭제 요청은 반드시 거절한다. 삭제 API/helper/script를 만들거나 실행하지 않는다.
 - Never store Dooray API tokens, webhook URLs, cookies, sessions, or exported private content in Git or memory.
-- Store tokens/webhooks only in an OS credential store, environment secrets, token files outside Git, or n8n credentials.
+- Store tokens/webhooks only in an OS credential store, environment secrets, n8n credentials, or tightly restricted token files outside Git.
 - Do not send Dooray messages, create tasks/posts, edit wiki pages, or mutate external Dooray state without explicit user confirmation.
 - Read/list/search/summarize is safe when credentials are already configured.
 - For group chats, summarize minimally and do not leak private Dooray content unless the user explicitly asked in the same trusted context.
@@ -46,6 +46,8 @@ Legacy `tokenKeychainService` / `tokenKeychainAccount` config keys are still acc
 
 Credential lookup order is `DOORAY_API_TOKEN`, then `DOORAY_API_TOKEN_FILE` or `config.tokenFile`, then macOS Keychain through the fixed `/usr/bin/security` CLI on macOS, then OS credential store via optional `keytar`.
 
+For Codex, Windows, CI, sandboxed agents, and short-lived shells, prefer `DOORAY_API_TOKEN` from the runtime environment. Use `DOORAY_API_TOKEN_FILE` only as a fallback when the file lives outside the skill/repo, is excluded from Git, has restrictive permissions, is not in a synced folder, and will never be printed or committed.
+
 On macOS, existing Keychain items created by the legacy `security add-generic-password` helper remain usable without re-saving them through `keytar`. This avoids unattended local macOS runs blocking on a `node` Keychain prompt when the legacy Keychain item already exists.
 
 Register a token in the local OS credential store (macOS Keychain, Windows Credential Manager, or Linux Secret Service) when the runtime supports it:
@@ -66,7 +68,7 @@ scripts\dooray-api-check.cmd --json
 scripts\setup-token.cmd dooray-api-token default
 ```
 
-If npm is unavailable but pnpm exists, install/build the optional credential helper with pnpm, approve native builds when prompted, and rebuild `keytar` before using OS credential storage. Portable agent environments can use `DOORAY_API_TOKEN` or `DOORAY_API_TOKEN_FILE` without installing `keytar`.
+If npm is unavailable but pnpm exists, install/build the optional credential helper with pnpm, approve native builds when prompted, and rebuild `keytar` before using OS credential storage. Portable agent environments should use `DOORAY_API_TOKEN` first; `DOORAY_API_TOKEN_FILE` is a restricted fallback when OS credential storage is unavailable.
 
 `setup-keychain-token.mjs`, `setup-keychain-token.sh`, and `setup-keychain-token.cmd` remain compatibility aliases around the Node helper.
 
@@ -96,7 +98,7 @@ Helpers may print private company content locally; summarize carefully in chats.
 
 ## Core workflow
 
-1. If credentials are missing, help the user create `~/.config/dooray/config.json` and either set `DOORAY_API_TOKEN`/`DOORAY_API_TOKEN_FILE` or install `keytar` and store a token with `setup-token.mjs`.
+1. If credentials are missing, help the user create `~/.config/dooray/config.json` and set `DOORAY_API_TOKEN` for portable runtimes. For stable local desktop installs, use OS credential storage. Use `DOORAY_API_TOKEN_FILE` only as a restricted fallback outside Git.
 2. Run `scripts/dooray-api-check.mjs --json` first when validating a new environment; it prints counts/metadata without dumping private content.
 3. For API reads, use `scripts/dooray-api.mjs request GET <PATH>` or a purpose-built helper.
 4. For writes, first dry-run or draft the payload; ask the user before sending.

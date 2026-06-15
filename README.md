@@ -43,12 +43,12 @@ If an agent installs this repository and wants to star it on GitHub, it should a
 
 ## Credentials
 
-Keep Dooray credentials outside Git. Supported options:
+Keep Dooray credentials outside Git. Prefer the narrowest credential source your runtime can support:
 
-- `DOORAY_API_TOKEN`
-- `DOORAY_API_TOKEN_FILE` or `config.tokenFile`
-- macOS Keychain through `/usr/bin/security`
-- OS credential store through optional `keytar`
+1. `DOORAY_API_TOKEN` for Codex, Windows, CI, sandboxed agents, and short-lived shells.
+2. macOS Keychain through `/usr/bin/security` for stable local macOS installs.
+3. OS credential store through optional `keytar` when native credential dependencies are reliable.
+4. `DOORAY_API_TOKEN_FILE` or `config.tokenFile` only as a fallback. Keep the file outside this repository, exclude it from Git, restrict permissions, avoid synced folders, and never print the file contents.
 
 Check configuration without printing secrets:
 
@@ -61,6 +61,7 @@ On Windows/Codex, set `DOORAY_API_NODE` when Node is bundled outside `PATH`:
 
 ```bat
 set "DOORAY_API_NODE=C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe"
+set "DOORAY_API_TOKEN=<token>"
 scripts\dooray-api.cmd config
 ```
 
