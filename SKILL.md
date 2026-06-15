@@ -46,7 +46,7 @@ Legacy `tokenKeychainService` / `tokenKeychainAccount` config keys are still acc
 
 Credential lookup order is `DOORAY_API_TOKEN`, then `DOORAY_API_TOKEN_FILE` or `config.tokenFile`, then macOS Keychain through the fixed `/usr/bin/security` CLI on macOS, then OS credential store via optional `keytar`.
 
-On macOS, existing Keychain items created by the legacy `security add-generic-password` helper remain usable without re-saving them through `keytar`. This avoids unattended OpenClaw/Mac mini runs blocking on a `node` Keychain prompt when the legacy Keychain item already exists.
+On macOS, existing Keychain items created by the legacy `security add-generic-password` helper remain usable without re-saving them through `keytar`. This avoids unattended local macOS runs blocking on a `node` Keychain prompt when the legacy Keychain item already exists.
 
 Register a token in the local OS credential store (macOS Keychain, Windows Credential Manager, or Linux Secret Service) when the runtime supports it:
 
@@ -55,15 +55,20 @@ cd ~/.openclaw/skills/dooray-api && npm install
 node scripts/setup-token.mjs dooray-api-token default
 ```
 
+For Codex or Claude Code installs, adjust the skill path to the actual runtime, for example `~/.codex/skills/dooray-api-skill`, `skills/dooray-api/`, or `C:\Users\user\.codex\skills\dooray-api-skill`.
+
 On Windows/Codex shells, the included `.cmd` wrappers avoid PATH aliases when possible:
 
 ```bat
+set "DOORAY_API_NODE=C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe"
 scripts\dooray-api.cmd config
 scripts\dooray-api-check.cmd --json
 scripts\setup-token.cmd dooray-api-token default
 ```
 
-`setup-keychain-token.mjs`, `setup-keychain-token.sh`, and `setup-keychain-token.cmd` remain compatibility aliases around the Node helper. Portable agent environments can use `DOORAY_API_TOKEN` or `DOORAY_API_TOKEN_FILE` without installing `keytar`.
+If npm is unavailable but pnpm exists, install/build the optional credential helper with pnpm, approve native builds when prompted, and rebuild `keytar` before using OS credential storage. Portable agent environments can use `DOORAY_API_TOKEN` or `DOORAY_API_TOKEN_FILE` without installing `keytar`.
+
+`setup-keychain-token.mjs`, `setup-keychain-token.sh`, and `setup-keychain-token.cmd` remain compatibility aliases around the Node helper.
 
 Check config/token without printing secrets:
 
@@ -92,8 +97,10 @@ Helpers may print private company content locally; summarize carefully in chats.
 
 1. If credentials are missing, help the user create `~/.config/dooray/config.json` and either set `DOORAY_API_TOKEN`/`DOORAY_API_TOKEN_FILE` or install `keytar` and store a token with `setup-token.mjs`.
 2. Run `scripts/dooray-api-check.mjs --json` first when validating a new environment; it prints counts/metadata without dumping private content.
-3. For API reads, use `scripts/dooray-api.mjs request <METHOD> <PATH>` or a purpose-built helper.
+3. For API reads, use `scripts/dooray-api.mjs request GET <PATH>` or a purpose-built helper.
 4. For writes, first dry-run or draft the payload; ask the user before sending.
+   - Raw non-read calls through `scripts/dooray-api.mjs request` require `--yes`; use `--dry-run` first.
+   - Do not document or add Messenger send helpers until a UTF-8-safe send path has been implemented and tested.
 5. If the exact Dooray endpoint is unclear, inspect official Dooray API docs or use `request GET` against safe discovery endpoints; do not guess destructive endpoints.
 6. For recurring automations, prefer n8n for scheduled API collection/sending and keep OpenClaw as setup/audit/helper.
 

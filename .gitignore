@@ -2,3 +2,16 @@ node_modules/
 .DS_Store
 *.log
 *.tmp
+.env
+.env.*
+*.token
+*.secret
+*.secrets
+*.pem
+*.key
+config.local.json
+dooray-config.json
+responses/
+exports/
+logs/
+*.jsonl

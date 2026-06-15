@@ -6,15 +6,16 @@ import { doorayRequest } from './dooray-http.mjs';
 function usage() {
   console.log(`Usage:
   node dooray-api.mjs config [--config ~/.config/dooray/config.json]
-  node dooray-api.mjs request <METHOD> <PATH_OR_URL> [--data JSON_OR_@file] [--config FILE]
+  node dooray-api.mjs request <METHOD> <PATH_OR_URL> [--data JSON_OR_@file] [--config FILE] [--dry-run|--yes]
 
 Examples:
   node dooray-api.mjs config
   node dooray-api.mjs request GET /common/v1/members/me
-  node dooray-api.mjs request POST /some/path --data @payload.json`);
+  node dooray-api.mjs request POST /some/path --data @payload.json --dry-run
+  node dooray-api.mjs request POST /some/path --data @payload.json --yes`);
 }
 function parseArgs(argv) {
-  const args = { command: argv[2], rest: [], config: process.env.DOORAY_CONFIG || '~/.config/dooray/config.json', data: null };
+  const args = { command: argv[2], rest: [], config: process.env.DOORAY_CONFIG || '~/.config/dooray/config.json', data: null, yes: false, dryRun: false };
   if (args.command === '--help' || args.command === '-h') {
     args.command = null;
     args.help = true;
@@ -24,6 +25,8 @@ function parseArgs(argv) {
     const a = argv[i];
     if (a === '--config') args.config = argv[++i];
     else if (a === '--data') args.data = argv[++i];
+    else if (a === '--yes') args.yes = true;
+    else if (a === '--dry-run') args.dryRun = true;
     else if (a === '--help' || a === '-h') args.help = true;
     else args.rest.push(a);
   }
@@ -56,8 +59,19 @@ if (args.command === 'config') {
 if (args.command === 'request') {
   const [method, pathOrUrl] = args.rest;
   if (!method || !pathOrUrl) { usage(); process.exit(2); }
+  const m = method.toUpperCase();
+  const body = payloadOf(args.data);
+  const mutating = !['GET', 'HEAD', 'OPTIONS'].includes(m);
+  if (mutating && args.dryRun) {
+    console.log(JSON.stringify({ ok: true, dryRun: true, method: m, pathOrUrl, body: body ? '[provided]' : null }, null, 2));
+    process.exit(0);
+  }
+  if (mutating && !args.yes) {
+    console.error(JSON.stringify({ ok: false, message: 'Refusing non-read Dooray API request without --yes. Use --dry-run to inspect the call first.' }, null, 2));
+    process.exit(2);
+  }
   try {
-    const parsed = await doorayRequest(config, method, pathOrUrl, payloadOf(args.data));
+    const parsed = await doorayRequest(config, m, pathOrUrl, body);
     console.log(typeof parsed === 'string' ? parsed : JSON.stringify(parsed, null, 2));
   } catch (error) {
     console.error(JSON.stringify({ ok: false, status: error.status, message: error.message, body: error.body }, null, 2));

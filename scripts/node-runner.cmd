@@ -7,6 +7,8 @@ if not "%DOORAY_API_NODE%"=="" if exist "%DOORAY_API_NODE%" (
 )
 
 for %%N in (
+  "%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe"
+  "%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\node.exe"
   "%LOCALAPPDATA%\Programs\Codex\resources\app\node.exe"
   "%LOCALAPPDATA%\Programs\Codex\resources\app.asar.unpacked\node.exe"
   "%LOCALAPPDATA%\Programs\Codex\node.exe"

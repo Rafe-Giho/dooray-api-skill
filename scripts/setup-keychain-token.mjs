@@ -61,7 +61,8 @@ if (args.help) {
   printf '%s' "$DOORAY_API_TOKEN" | node setup-token.mjs --token-stdin
 
 Stores the token in the current OS credential store (${credentialStoreName()} on this machine).
-Requires the optional keytar package: run npm install in this skill directory first.
+Requires the optional keytar package. Run npm install in this skill directory first, or use pnpm install + pnpm approve-builds --all + pnpm rebuild keytar when npm is unavailable.
+Use --token-stdin in non-interactive shells to avoid quoting and prompt-window issues.
 
 Compatibility alias:
   node setup-keychain-token.mjs [service] [account]`);

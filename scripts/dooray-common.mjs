@@ -7,7 +7,10 @@ export const DEFAULT_CONFIG = '~/.config/dooray/config.json';
 const execFileAsync = promisify(execFile);
 
 export function expandHome(p) { return String(p || '').replace(/^~(?=$|\/)/, os.homedir()); }
-export function readJson(file) { return JSON.parse(fs.readFileSync(expandHome(file), 'utf8')); }
+export function readJson(file) {
+  const text = fs.readFileSync(expandHome(file), 'utf8').replace(/^\uFEFF/, '');
+  return JSON.parse(text);
+}
 export function loadConfig(configPath = process.env.DOORAY_CONFIG || DEFAULT_CONFIG) {
   const file = expandHome(configPath);
   if (!fs.existsSync(file)) throw new Error(`Missing Dooray config: ${file}`);
@@ -39,9 +42,14 @@ export function doorayWebUrl(config, path) {
 }
 async function loadKeytar() {
   try {
-    return await import('keytar');
+    const mod = await import('keytar');
+    const keytar = mod.default || mod;
+    if (!keytar?.getPassword || !keytar?.setPassword) {
+      throw new Error('keytar module does not expose getPassword/setPassword');
+    }
+    return keytar;
   } catch (error) {
-    throw new Error(`OS credential-store token lookup requires the optional keytar package. Run npm install in the dooray-api skill directory, or set DOORAY_API_TOKEN/DOORAY_API_TOKEN_FILE. (${error.message})`);
+    throw new Error(`OS credential-store token lookup requires the optional keytar package. Run npm install in the dooray-api skill directory, use pnpm install + pnpm approve-builds --all + pnpm rebuild keytar when npm is unavailable, or set DOORAY_API_TOKEN/DOORAY_API_TOKEN_FILE. (${error.message})`);
   }
 }
 export function credentialStoreName() {
