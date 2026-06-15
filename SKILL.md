@@ -88,6 +88,7 @@ node ~/.openclaw/skills/dooray-api/scripts/dooray-api.mjs config
 - `scripts/wiki-get.mjs --wiki <id-or-name-or-project-code>` — fetch a wiki page, defaulting to the home page.
 - `scripts/messenger-list.mjs` — list messenger channels/rooms.
 - `scripts/messenger-logs.mjs --channel <id-or-title>` — fetch recent message logs.
+- `scripts/messenger-send.mjs --channel <id-or-title> --text "message" --dry-run` — prepare a UTF-8-safe Messenger channel send payload. Actual send requires `--yes` after explicit user approval.
 - `scripts/meeting-links-from-messenger.mjs --channel <id-or-title> --limit 100` — read messenger logs and extract recent `/home/<homeId>/<postId>` links for use by a web-specific Dooray workflow. If `--channel` is omitted, it uses `defaults.messengerChannel` from config.
 - `scripts/weekly-report-draft.mjs` — draft from a Project post or local markdown. Do not use it to upload Home/게시판 posts.
 
@@ -100,7 +101,7 @@ Helpers may print private company content locally; summarize carefully in chats.
 3. For API reads, use `scripts/dooray-api.mjs request GET <PATH>` or a purpose-built helper.
 4. For writes, first dry-run or draft the payload; ask the user before sending.
    - Raw non-read calls through `scripts/dooray-api.mjs request` require `--yes`; use `--dry-run` first.
-   - Do not document or add Messenger send helpers until a UTF-8-safe send path has been implemented and tested.
+   - Messenger channel sends through `scripts/messenger-send.mjs` require `--yes` and use escaped Unicode JSON so Korean text is not corrupted by non-UTF-8 command paths.
 5. If the exact Dooray endpoint is unclear, inspect official Dooray API docs or use `request GET` against safe discovery endpoints; do not guess destructive endpoints.
 6. For recurring automations, prefer n8n for scheduled API collection/sending and keep OpenClaw as setup/audit/helper.
 

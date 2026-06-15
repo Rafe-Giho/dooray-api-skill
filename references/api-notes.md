@@ -47,6 +47,7 @@ Verified against a Dooray Service API token on 2026-05-28:
 - `GET /wiki/v1/wikis/{wikiId}/pages/{pageId}` — wiki page body.
 - `GET /messenger/v1/channels` — messenger channels.
 - `GET /messenger/v1/channels/{channelId}/logs?size=N` — messenger logs.
+- `POST /messenger/v1/channels/{channelId}/send` — messenger channel send. Use `scripts/messenger-send.mjs --dry-run` first; actual sends require explicit approval and `--yes`.
 
 Do not assume write endpoints until separately verified with explicit user approval.
 

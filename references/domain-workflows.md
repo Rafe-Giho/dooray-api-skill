@@ -36,7 +36,7 @@ Write flow:
 1. Draft the message locally.
 2. Show target + body + attachments/links.
 3. Ask for confirmation.
-4. Send only after explicit approval.
+4. Send only after explicit approval, using `scripts/messenger-send.mjs --dry-run` first and `--yes` only for the approved target/body.
 
 Future helpers:
 

@@ -11,7 +11,7 @@
     "keytar": "^7.9.0"
   },
   "scripts": {
-    "check": "node --check scripts/dooray-api-check.mjs && node --check scripts/dooray-api.mjs && node --check scripts/dooray-common.mjs && node --check scripts/dooray-http.mjs && node --check scripts/meeting-links-from-messenger.mjs && node --check scripts/messenger-list.mjs && node --check scripts/messenger-logs.mjs && node --check scripts/post-create.mjs && node --check scripts/post-get.mjs && node --check scripts/projects-list.mjs && node --check scripts/readonly-summary.mjs && node --check scripts/setup-keychain-token.mjs && node --check scripts/setup-token.mjs && node --check scripts/tasks-list.mjs && node --check scripts/tasks-report.mjs && node --check scripts/weekly-report-draft.mjs && node --check scripts/wiki-get.mjs && node --check scripts/wikis-list.mjs",
+    "check": "node --check scripts/dooray-api-check.mjs && node --check scripts/dooray-api.mjs && node --check scripts/dooray-common.mjs && node --check scripts/dooray-http.mjs && node --check scripts/meeting-links-from-messenger.mjs && node --check scripts/messenger-list.mjs && node --check scripts/messenger-logs.mjs && node --check scripts/messenger-send.mjs && node --check scripts/post-create.mjs && node --check scripts/post-get.mjs && node --check scripts/projects-list.mjs && node --check scripts/readonly-summary.mjs && node --check scripts/setup-keychain-token.mjs && node --check scripts/setup-token.mjs && node --check scripts/tasks-list.mjs && node --check scripts/tasks-report.mjs && node --check scripts/weekly-report-draft.mjs && node --check scripts/wiki-get.mjs && node --check scripts/wikis-list.mjs",
     "setup-token": "node scripts/setup-token.mjs",
     "setup-keychain-token": "node scripts/setup-keychain-token.mjs"
   }
